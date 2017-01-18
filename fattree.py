@@ -2,6 +2,10 @@
 """
 This script automaticly create ned file and header for m port n tree fat tree topology
 """
+import re
+import glob
+import numpy as np
+import matplotlib.pyplot as plt
 
 class fatTree(object):
 
@@ -138,7 +142,7 @@ class fatTree(object):
 
 
     def createNed(self):
-        nedfile = open("fat_tree_simple.ned",'w')
+        nedfile = open("fat_tree_simple.ned", 'w')
         # write router
         nedfile.write("simple Router\n")
         nedfile.write("{\n")
@@ -158,7 +162,7 @@ class fatTree(object):
         nedfile.write("\tparameters:\n")
         nedfile.write("\n")
         nedfile.write("\tgates:\n")
-        nedfile.write("\t\tinout port:\n")
+        nedfile.write("\t\tinout port;\n")
         nedfile.write("}\n")
 
 
@@ -190,10 +194,110 @@ class fatTree(object):
 
         nedfile.write("}\n")
 
-
         nedfile.close()
+    def createHeader(self):
+        # create fat_tree.h
+        headfile = open("fat_tree_simple.h", 'w')
+        headfile.write("#define PortNum " + str(self.port) + "\n")
+        headfile.write("#define LevelNum " + str(self.level) + "\n")
+        headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
+        headfile.write("#define SwitchNum " + str(self.switch) + "\n")
+        headfile.write("#define LinkNum " + str(self.switch * self.port + self.processor) + "\n")
+        headfile.write("#define SwTop " + str(self.switchTop) + "\n")
+        headfile.write("#define SwLower " + str(self.switchLower) + "\n")
+        headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
+        headfile.close()
+
+    def plotResult(self):
+        """
+        read file from log and calculate the flitDelayTime, HopCount, flitReceived, flitSent to get
+        throughput, injection rate, latency
+        :return:
+        """
+        filenames = glob.glob('./log/*.txt')
+        # each row is a different simulation result
+        # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
+        results = []
+
+        for filename in filenames:
+            txtfile = open(filename, 'r')
+            lines = txtfile.readlines()
+            # tmp variable for each file
+            flitDelayTimeTotal = 0
+            flitDelayTimeCount = 0
+            hopCountTotal = 0
+            hopCountCount = 0
+            flitReceived = 0
+            flitSent = 0
+            timeCount = 0
+
+            for line in lines:
+                line = line.strip()
+                list = re.split("  | |\t", line)
+                # print list
+                if len(list) == 11:
+                    nodetype, count, mean = list[6:9]
+                    if nodetype == "flitDelayTime":
+                        flitDelayTimeTotal += float(count) * float(mean)
+                        flitDelayTimeCount += float(count)
+                    elif nodetype == "hopCount":
+                        hopCountTotal += float(count) * float(mean)
+                        hopCountCount += float(count)
+                elif len(list) == 8:
+                    nodetype, value = list[6:9]
+                    if nodetype == "timeCount":
+                        timeCount = float(value)
+                    elif nodetype == "flitReceived":
+                        flitReceived += float(value)
+                    elif nodetype == "flitSent":
+                        flitSent += float(value)
+            txtfile.close()
+            if flitDelayTimeCount != 0 and hopCountCount != 0:
+                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, timeCount])
+        # each row in answers is a different simulation result
+        # each column represent injectionRate, throughput, averageLatency
+        answers = []
+        for result in results:
+            # print result
+            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount = result
+            injectionRate = 1.0 * flitSent / (timeCount * self.processor)
+            throughtput = 1.0 * flitReceived / (timeCount * self.processor)
+            answers.append([injectionRate, throughtput, avgFlitDelayTime])
+
+        rawData = np.array(answers)
+        index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
+        plotData = rawData[index[:,0],:] # sort according to first column
+        print plotData
+        print rawData
+
+        figure = plt.figure(1, figsize=(16, 8))
+        axe1 = figure.add_subplot(121)
+        axe2 = figure.add_subplot(122)
+        plt.sca(axe1)
+        plt.plot(plotData[:,0], plotData[:,1], linewidth=2)
+        plt.xlabel("Injection Rate")
+        plt.ylabel("Throughput")
+        plt.title("Injection Rate vs Throughput")
+
+        plt.sca(axe2)
+        plt.plot(plotData[:,0], plotData[:,2], linewidth=2)
+        plt.xlabel("Injection Rate")
+        plt.ylabel("Average Latency")
+        plt.title("Injection Rate vs AverageLatency")
+        # plt.legend()
+        plt.show()
+
+
+
+
+
+
+
+
+
 
 # main function
 fattree = fatTree(4, 3, 1, 10)
-fattree.createNed()
-#print fattree.printPortId()
+# fattree.createNed()
+# fattree.createHeader()
+fattree.plotResult()
