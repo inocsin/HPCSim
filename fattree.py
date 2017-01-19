@@ -1,6 +1,7 @@
 #coding:utf-8
 """
 This script automaticly create ned file and header for m port n tree fat tree topology
+plid, swlid用两位表示一位
 """
 import re
 import glob
@@ -28,9 +29,10 @@ class fatTree(object):
         idtmp = ppid
         idfinal = 0
         mul = 1
+        # mul每次乘以100，用两位表示一位，如15_7_7表示为150707
         for j in range(self.level-1):
             idfinal = idfinal + idtmp % (self.port / 2) * mul
-            mul = mul * 10
+            mul = mul * 100
             idtmp = (int) (idtmp / (self.port / 2))
         idfinal = idfinal + idtmp * mul
         return idfinal
@@ -40,9 +42,9 @@ class fatTree(object):
         mul = 1
         IDtmp = 0
         for j in range(self.level):
-            IDtmp = IDtmp + mul * (tmp % 10)
+            IDtmp = IDtmp + mul * (tmp % 100)
             mul = mul * (self.port / 2)
-            tmp = tmp / 10
+            tmp = tmp / 100
         return IDtmp
 
     def swpid2swlid(self, swpid):
@@ -65,9 +67,9 @@ class fatTree(object):
             for j in range(self.level - 2):
                 IDtmp = mul * (tmp % (self.port / 2)) + IDtmp
                 tmp = (int) (tmp / (self.port / 2))
-                mul = mul * 10
+                mul = mul * 100
             IDtmp = IDtmp + mul * tmp
-            mul = mul * 10
+            mul = mul * 100
             IDtmp = mul * level + IDtmp  # 最前面加上它的层数
             return IDtmp
         # 接下来对顶层的switch进行操作
@@ -75,23 +77,23 @@ class fatTree(object):
             tmp = swpid
             IDtmp = 0
             mul = 1
-            for j in range(n-1):
+            for j in range(self.level-1):
                 IDtmp = mul * (tmp % (self.port / 2)) + IDtmp
                 tmp = (int) (tmp / (self.port / 2))
-                mul = mul * 10
+                mul = mul * 100
             IDtmp = mul * level + IDtmp
             return IDtmp
 
     def swlid2swpid(self, swlid):
         tmp = swlid
-        level = tmp / (10 ** (self.level - 1))
-        tmp = tmp % (10 ** (self.level - 1))
+        level = tmp / (100 ** (self.level - 1))
+        tmp = tmp % (100 ** (self.level - 1))
         IDtmp = level * self.switchLowerEach
         mul = 1
         for j in range(self.level-1):
-            IDtmp = IDtmp + mul * (tmp % 10)
+            IDtmp = IDtmp + mul * (tmp % 100)
             mul = mul * (self.port / 2)
-            tmp = tmp / 10
+            tmp = tmp / 100
         return IDtmp
 
     def printPortId(self):
@@ -107,9 +109,9 @@ class fatTree(object):
             ppid = i
             plid = self.ppid2plid(ppid)
             l = 0
-            c = plid / 10
-            k = plid % 10
-            swlid = l * (10 ** self.level) + c
+            c = plid / 100
+            k = plid % 100
+            swlid = l * (10 ** ((self.level - 1) * 2)) + c
             swpid = self.swlid2swpid(swlid)
             #print swlid,swpid
             #print "processor[%d].port <--> Channel <--> router[%d].port_%d;"%(ppid, swpid, k)
@@ -117,22 +119,23 @@ class fatTree(object):
         return processorString
 
     def printSwitchConnection(self):
+        # 每一个switch只负责向上的连接
         switchString = []
         for i in range(self.switch-self.switchTop):
             swpid = i
             swlid = self.swpid2swlid(swpid)
-            l = swlid / (10 ** (self.level - 1))
+            l = swlid / (10 ** ((self.level - 1) * 2))
             l2 = l + 1
             #print swpid,swlid,l,l2
-            c = swlid % (10 ** (self.level - 1))
-            k2 = (c / (10 ** l)) % 10
+            c = swlid % (10 ** ((self.level - 1) * 2))
+            k2 = (c / (10 ** (l * 2))) % 100
             #print c,k2
             for j in range(self.port / 2, self.port):
                 k = j
                 cl2 = k - self.port / 2
                 #print k,cl2
-                c2 = c % (10 ** l) + cl2 * (10 ** l) + c / (10 ** (l + 1)) * (10 ** (l + 1))
-                swlid2 = l2 * (10 ** (self.level - 1)) + c2
+                c2 = c % (10 ** (l * 2)) + cl2 * (10 ** (l * 2)) + c / (10 ** ((l + 1) * 2)) * (10 ** ((l + 1) * 2))
+                swlid2 = l2 * (10 ** ((self.level - 1) * 2)) + c2
                 swpid2 = self.swlid2swpid(swlid2)
                 #print "swpid:%d, swlid:%d, port:%d --> swpid2:%d, swlid2:%d, port:%d"%(swpid,swlid,k,swpid2,swlid2,k2)
                 #print "router[%d].port_%d <--> Channel <--> router[%d].port_%d;"%(swpid, k, swpid2, k2)
@@ -297,7 +300,22 @@ class fatTree(object):
 
 
 # main function
-fattree = fatTree(4, 3, 1, 10)
+# port, level, delay, datarate
+fattree = fatTree(16, 3, 6.4, 5)
+
+# print fattree.swpid2swlid(319)
+# print fattree.swlid2swpid(20707)
+# print fattree.swpid2swlid(255)
+# print fattree.swlid2swpid(11507)
+# print fattree.swpid2swlid(127)
+# print fattree.swlid2swpid(1507)
+# print fattree.swpid2swlid(128)
+# print fattree.swlid2swpid(10000)
+# print "processor"
+# print fattree.ppid2plid(1023)
+# print fattree.plid2ppid(150707)
+
 # fattree.createNed()
 # fattree.createHeader()
+
 fattree.plotResult()
