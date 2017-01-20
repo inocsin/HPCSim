@@ -271,7 +271,7 @@ class fatTree(object):
         index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
         plotData = rawData[index[:,0],:] # sort according to first column
         print plotData
-        print rawData
+        # print rawData
 
         figure = plt.figure(1, figsize=(16, 8))
         axe1 = figure.add_subplot(121)
