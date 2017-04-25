@@ -10,7 +10,15 @@ import matplotlib.pyplot as plt
 
 class fatTree(object):
 
-    def __init__(self, port, level, delay, datarate):
+    def __init__(self, port, level, delay, datarate, packetsize, flitsize):
+        """
+
+        :param port: number of ports
+        :param level: the level of fat-tree
+        :param delay: the delay of link in ns, 5ns/m
+        :param datarate: the datarate of the link in Gbps
+        :return:
+        """
         self.port = port  # port number
         self.level = level  # level number n
         self.processor = 2 * (port / 2) ** level  # number of processor
@@ -20,6 +28,9 @@ class fatTree(object):
         self.switchLowerEach = self.switchLower / (self.level - 1)  # number of switches in each lower layer
         self.delay = delay  # ns
         self.datarate = datarate  # Gbps
+        self.packetsize = packetsize # Byte
+        self.flitsize = flitsize # Byte
+        self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -209,6 +220,10 @@ class fatTree(object):
         headfile.write("#define SwTop " + str(self.switchTop) + "\n")
         headfile.write("#define SwLower " + str(self.switchLower) + "\n")
         headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
+        headfile.write("#define PacketSize " + str(self.packetsize) + "\n")
+        headfile.write("#define FlitSize " + str(self.flitsize) + "\n")
+        headfile.write("#define FlitLength " + str(self.flitlength) + "\n")
+
         headfile.close()
 
     def plotResult(self):
@@ -301,8 +316,8 @@ class fatTree(object):
 
 # main function
 # port, level, delay, datarate
-fattree = fatTree(16, 3, 6.4, 5)
 
+fattree = fatTree(36,3,50,112)
 # print fattree.swpid2swlid(319)
 # print fattree.swlid2swpid(20707)
 # print fattree.swpid2swlid(255)
@@ -315,7 +330,7 @@ fattree = fatTree(16, 3, 6.4, 5)
 # print fattree.ppid2plid(1023)
 # print fattree.plid2ppid(150707)
 
-# fattree.createNed()
-# fattree.createHeader()
+fattree.createNed()
+fattree.createHeader()
 
-fattree.plotResult()
+# fattree.plotResult()
