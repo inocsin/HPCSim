@@ -17,6 +17,8 @@ class fatTree(object):
         :param level: the level of fat-tree
         :param delay: the delay of link in ns, 5ns/m
         :param datarate: the datarate of the link in Gbps
+        :param packetsize: the packet size in Byte
+        :param flitsize: the flit size in Byte
         :return:
         """
         self.port = port  # port number
@@ -156,7 +158,7 @@ class fatTree(object):
 
 
     def createNed(self):
-        nedfile = open("fat_tree_simple.ned", 'w')
+        nedfile = open("fat_tree.ned", 'w')
         # write router
         nedfile.write("simple Router\n")
         nedfile.write("{\n")
@@ -181,7 +183,7 @@ class fatTree(object):
 
 
         # writre fat_tree
-        nedfile.write("network Fat_tree_simple\n")
+        nedfile.write("network Fat_tree\n")
         nedfile.write("{\n")
         nedfile.write("\ttypes:\n")
         nedfile.write("\t\tchannel Channel extends ned.DatarateChannel\n")
@@ -211,7 +213,7 @@ class fatTree(object):
         nedfile.close()
     def createHeader(self):
         # create fat_tree.h
-        headfile = open("fat_tree_simple.h", 'w')
+        headfile = open("fat_tree.h", 'w')
         headfile.write("#define PortNum " + str(self.port) + "\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
@@ -311,13 +313,9 @@ class fatTree(object):
 
 
 
-
-
-
 # main function
-# port, level, delay, datarate
-
-fattree = fatTree(36,3,50,112)
+# port, level, delay, datarate, packetsize, flitsize
+fattree = fatTree(16,3,1,100,1000,200)
 # print fattree.swpid2swlid(319)
 # print fattree.swlid2swpid(20707)
 # print fattree.swpid2swlid(255)

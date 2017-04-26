@@ -109,6 +109,7 @@ class FFT(LogP):
         # plt.legend()
         plt.show()
 
+
 class cyclicFFT(FFT):
     def __init__(self, **kwargs):
         super(cyclicFFT,self).__init__(**kwargs)
@@ -117,8 +118,10 @@ class cyclicFFT(FFT):
         communicationTime = (1.0 * self.pointsArray / self.processor * max(self.loadAndStore + 2.0 * self.overhead, self.gap) + self.latency) \
                             * math.log(self.processor) / math.log(self.base)
         return communicationTime
+
     def plot(self, name):
         super(cyclicFFT,self).plot(name)
+
     def myplot(self):
         self.plot("Cyclic Layout")
 
@@ -130,8 +133,10 @@ class hybridFFT(FFT):
     def calcCommunication(self):
         communicationTime = (1.0 * self.pointsArray * (1 / self.processor - 1 / self.processor ** 2) * max(self.loadAndStore + 2.0 * self.overhead, self.gap) + self.latency)
         return communicationTime
+
     def plot(self, name):
         super(hybridFFT,self).plot(name)
+
     def myplot(self):
         self.plot("Hybrid Layout")
 
@@ -198,10 +203,13 @@ class randomLU(LU):
             for k in xrange(1,N-1):
                 communicationTime[n-1] = communicationTime[n-1] + 2 * (N - k) * max(self.loadAndStore + 2.0 * self.overhead, self.gap) + self.latency
         return communicationTime
+
     def plot(self, name):
         super(randomLU,self).plot(name)
+
     def myplot(self):
         self.plot("Random Layout")
+
 
 class columnLU(LU):
     def __init__(self, **kwargs):
@@ -214,8 +222,10 @@ class columnLU(LU):
             for k in xrange(1,N-1):
                 communicationTime[n-1] = communicationTime[n-1] + (N - k) * max(self.loadAndStore + 2.0 * self.overhead, self.gap) + self.latency
         return communicationTime
+
     def plot(self, name):
         super(columnLU,self).plot(name)
+
     def myplot(self):
         self.plot("Column Layout")
 
