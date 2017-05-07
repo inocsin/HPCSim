@@ -156,11 +156,10 @@ class fatTree(object):
         return switchString
 
 
-
     def createNed(self):
         nedfile = open("fat_tree.ned", 'w')
         # write router
-        nedfile.write("simple Router\n")
+        nedfile.write("simple FtRouter\n")
         nedfile.write("{\n")
         nedfile.write("\tparameters:\n")
         nedfile.write("\n")
@@ -173,7 +172,7 @@ class fatTree(object):
         nedfile.write("}\n")
 
         # write processor
-        nedfile.write("simple Processor\n")
+        nedfile.write("simple FtProcessor\n")
         nedfile.write("{\n")
         nedfile.write("\tparameters:\n")
         nedfile.write("\n")
@@ -192,10 +191,10 @@ class fatTree(object):
         nedfile.write("\t\t\tdatarate = " + str(self.datarate) + "Gbps;\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\tsubmodules:\n")
-        nedfile.write("\t\trouter[" + str(self.switch) + "]: Router {\n")
+        nedfile.write("\t\trouter[" + str(self.switch) + "]: FtRouter {\n")
         nedfile.write("\n")
         nedfile.write("\t\t}\n")
-        nedfile.write("\t\tprocessor[" + str(self.processor) + "]: Processor{\n")
+        nedfile.write("\t\tprocessor[" + str(self.processor) + "]: FtProcessor{\n")
         nedfile.write("\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\tconnections:\n")
