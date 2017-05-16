@@ -1,3 +1,4 @@
 *.ned
 *.h
 log/
+result/

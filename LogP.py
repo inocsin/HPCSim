@@ -13,21 +13,21 @@ class LogP(object):
         self.tsend = kwargs.pop('tsend', 0) # send time of processor
         self.treceive = kwargs.pop('treceive', 0) # receive time of processor
         self.overhead = kwargs.pop('overhead', 0)
-        self.procFreq = kwargs.pop('procFreq', 1e9)
+        self.procFreq = kwargs.pop('procFreq', 1e9) # floating point compution frequency
 
         if self.overhead == 0: # processor overhead
             self.overhead = (self.tsend + self.treceive) / 2
 
-        self.latency = kwargs.pop('latency', 0) # latency of transfer message in the link
+        self.latency = kwargs.pop('latency', 0) # the total latency of transfer message in the link
         self.msgSize = kwargs.pop('msgSize', 32) # message size
         self.bandwidth = kwargs.pop('bandwidth', 10e9) # bandwidth of link
         self.avgRouter = kwargs.pop('avgRouter', 9.3) # average hop of router
         self.routerDelay = kwargs.pop('routerDelay', 1e-6)
-        self.linkLatency = kwargs.pop('linkLatency', 20 / (3e8))
+        self.linkLatency = kwargs.pop('linkLatency', 20 / (2e8))
         self.linkOverhead = kwargs.pop('linkOverhead', 0)
 
         if self.latency == 0:
-            self.latency = self.avgRouter * (self.routerDelay + self.linkLatency + self.linkOverhead  * 2) + self.msgSize / self.bandwidth
+            self.latency = self.avgRouter * (self.routerDelay + self.linkLatency + self.linkOverhead * 2) + self.msgSize / self.bandwidth
 
         self.gap0 = kwargs.pop('gap', 0) # the original gap = 1 / (saturation_rate * max_inject_freq)
         self.gap = max(self.gap0, self.msgSize / self.bandwidth)
@@ -75,7 +75,7 @@ class FFT(LogP):
     def oprationTime(self):
         # calculate the time cost per operation in average
         self.updateValue()
-        opTime = (self.calcCommunication() + self.calcComputaion()) / (self.pointsArray * np.log(self.pointsArray) / np.log(self.base) / 2)
+        opTime = (self.calcCommunication() + self.calcComputaion()) / (self.pointsArray * np.log(self.pointsArray) / np.log(self.base))
         return opTime
 
     def plot(self, name):

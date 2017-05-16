@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class fatTree(object):
 
-    def __init__(self, port, level, delay, datarate, packetsize, flitsize):
+    def __init__(self, port, level, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay):
         """
 
         :param port: number of ports
@@ -29,10 +29,14 @@ class fatTree(object):
         self.switchLower = self.switch - self.switchTop  # number of lower switch
         self.switchLowerEach = self.switchLower / (self.level - 1)  # number of switches in each lower layer
         self.delay = delay  # ns
-        self.datarate = datarate  # Gbps
+        self.datarate = datarate * lane # Gbps
+        self.rawDatarate = datarate # Gbps
         self.packetsize = packetsize # Byte
         self.flitsize = flitsize # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
+        self.bufferDepth = bufferDepth
+        self.vc = vc
+        self.routerDelay = routerDelay
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -214,16 +218,22 @@ class fatTree(object):
         # create fat_tree.h
         headfile = open("fat_tree.h", 'w')
         headfile.write("#define PortNum " + str(self.port) + "\n")
-        headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
-        headfile.write("#define SwitchNum " + str(self.switch) + "\n")
         headfile.write("#define LinkNum " + str(self.switch * self.port + self.processor) + "\n")
-        headfile.write("#define SwTop " + str(self.switchTop) + "\n")
-        headfile.write("#define SwLower " + str(self.switchLower) + "\n")
-        headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
         headfile.write("#define PacketSize " + str(self.packetsize) + "\n")
         headfile.write("#define FlitSize " + str(self.flitsize) + "\n")
         headfile.write("#define FlitLength " + str(self.flitlength) + "\n")
+        headfile.write("#define VC " + str(self.vc) + "\n")
+        headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
+        headfile.write("//****************below is fat_tree attribute************\n")
+        headfile.write("#define LevelNum " + str(self.level) + "\n")
+        headfile.write("#define SwitchNum " + str(self.switch) + "\n")
+        headfile.write("#define SwTop " + str(self.switchTop) + "\n")
+        headfile.write("#define SwLower " + str(self.switchLower) + "\n")
+        headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
+
 
         headfile.close()
 
@@ -313,8 +323,8 @@ class fatTree(object):
 
 
 # main function
-# port, level, delay, datarate, packetsize, flitsize
-fattree = fatTree(16,3,1,100,1000,200)
+# port, level, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay
+fattree = fatTree(16,3,5*10,14,8,128,4,4,3,100)
 # print fattree.swpid2swlid(319)
 # print fattree.swlid2swpid(20707)
 # print fattree.swpid2swlid(255)

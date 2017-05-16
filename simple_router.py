@@ -9,17 +9,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class SimpleRouter(object):
-    def __init__(self, port, delay, datarate, lane, packetsize, flitsize, routerDelay):
+    def __init__(self, port, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay):
         self.switch = 1
         self.port = port
         self.processor = port
         self.delay = delay  # ns
         self.lane = lane
         self.datarate = datarate * lane  # Gbps
+        self.rawdatarate = datarate
         self.packetsize = packetsize # Byte
         self.flitsize = flitsize # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
-        self.routerDelay = routerDelay #ns
+        self.routerDelay = routerDelay * 1e-9 #ns
+        self.bufferDepth = bufferDepth
+        self.vc = vc
 
     def printProcessorConnection(self):
         processorString = [""] * self.processor
@@ -93,7 +96,11 @@ class SimpleRouter(object):
         headfile.write("#define PacketSize " + str(self.packetsize) + "\n")
         headfile.write("#define FlitSize " + str(self.flitsize) + "\n")
         headfile.write("#define FlitLength " + str(self.flitlength) + "\n")
-        headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)))
+        headfile.write("#define VC " + str(self.vc) + "\n")
+        headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
+
         headfile.close()
 
 
@@ -116,6 +123,7 @@ class SimpleRouter(object):
             timeCount = 0
             packetDelayTimeTotal = 0
             packetDelayTimeCount = 0
+            flitDropped = 0
 
             for line in lines:
                 line = line.strip()
@@ -140,34 +148,39 @@ class SimpleRouter(object):
                         flitReceived += float(value)
                     elif nodetype == "flitSent":
                         flitSent += float(value)
+                    elif nodetype == "packetDropped":
+                        flitDropped += float(value) * self.flitlength
+
 
             txtfile.close()
             if flitDelayTimeCount != 0 and hopCountCount != 0:
-                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, timeCount])
+                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, flitDropped, timeCount])
         # each row in answers is a different simulation result
         # each column represent injectionRate, throughput, averageLatency
         # print "avg flit delay time\tavg hop count\tflit received\tflit sent\ttime count"
         # for result in results:
         #     print str(result[0]) + "\t" + str(result[1]) + "\t" + str(result[2]) + "\t" + str(result[3]) + "\t" + str(result[4])
 
-        print "injectionRate\tthroughput\tavgFlitDelayTime\tBandwidth\tlane\tpacketSize\tflitSize"
+        print "injectionRate\tthroughput\tavgFlitDelayTime\tBandwidth\tlane\tpacketSize\tflitSize\tbufferDepth\tvc"
         answers = []
         for result in results:
             # print result
-            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount = result
-            injectionRate = 1.0 * flitSent / (timeCount * self.processor)
+            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, flitDropped, timeCount = result
+            injectionRate = 1.0 * (flitSent + flitDropped) / (timeCount * self.processor)
+            # print str(flitSent) + " " + str(timeCount) + " " + str(self.processor)
             throughtput = 1.0 * flitReceived / (timeCount * self.processor)
-            answers.append([injectionRate, throughtput, avgFlitDelayTime])
+            if injectionRate <= 1.0:
+                answers.append([injectionRate, throughtput, avgFlitDelayTime + self.routerDelay])
             #加入routerDelay
-            print str(injectionRate) + "\t" + str(throughtput) + "\t" + str(avgFlitDelayTime + self.routerDelay)
-            + "\t" + str(self.datarate) + "\t" + str(self.lane) + "\t" + str(self.packetsize)
-            + "\t" + str(self.flitsize)
+            print str(injectionRate) + "\t" + str(throughtput) + "\t" + str(avgFlitDelayTime + self.routerDelay) \
+            + "\t" + str(self.rawdatarate) + "\t" + str(self.lane) + "\t" + str(self.packetsize) \
+            + "\t" + str(self.flitsize) + "\t" + str(self.bufferDepth) + "\t" + str(self.vc)
 
 
         rawData = np.array(answers)
         index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
         plotData = rawData[index[:,0],:] # sort according to first column
-        print plotData
+        # print plotData
         # print rawData
 
         figure = plt.figure(1, figsize=(16, 8))
@@ -188,8 +201,8 @@ class SimpleRouter(object):
         plt.show()
 
 
-#port, delay, datarate, packetsize, flitsize, routerDelay
-tianhe_router = SimpleRouter(24, 0, 112, 128, 4, 100)
+#port, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay
+tianhe_router = SimpleRouter(24, 0, 14, 8, 128, 4, 4, 3, 100)
 tianhe_router.createNed()
 tianhe_router.createHeader()
 tianhe_router.plotResult()
