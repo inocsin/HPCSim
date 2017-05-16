@@ -38,7 +38,7 @@ class SimpleRouter(object):
         return portString
 
     def createNed(self):
-        nedfile = open("tianhe_router.ned", 'w')
+        nedfile = open("result/tianhe_router.ned", 'w')
         # write router
         nedfile.write("simple SimpleRouter\n")
         nedfile.write("{\n")
@@ -90,7 +90,7 @@ class SimpleRouter(object):
 
     def createHeader(self):
         # create fat_tree.h
-        headfile = open("tianhe_router.h", 'w')
+        headfile = open("result/tianhe_router.h", 'w')
         headfile.write("#define PortNum " + str(self.port) + "\n")
         headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
         headfile.write("#define PacketSize " + str(self.packetsize) + "\n")
@@ -141,7 +141,7 @@ class SimpleRouter(object):
                         packetDelayTimeTotal += float(count) * float(mean)
                         packetDelayTimeCount += float(count)
                 elif len(list) == 8: # scalar
-                    nodetype, value = list[6:9]
+                    nodetype, value = list[6:8]
                     if nodetype == "timeCount":
                         timeCount = float(value)
                     elif nodetype == "flitReceived":

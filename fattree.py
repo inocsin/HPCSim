@@ -161,7 +161,7 @@ class fatTree(object):
 
 
     def createNed(self):
-        nedfile = open("fat_tree.ned", 'w')
+        nedfile = open("result/fat_tree.ned", 'w')
         # write router
         nedfile.write("simple FtRouter\n")
         nedfile.write("{\n")
@@ -216,7 +216,7 @@ class fatTree(object):
         nedfile.close()
     def createHeader(self):
         # create fat_tree.h
-        headfile = open("fat_tree.h", 'w')
+        headfile = open("result/fat_tree.h", 'w')
         headfile.write("#define PortNum " + str(self.port) + "\n")
         headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
         headfile.write("#define LinkNum " + str(self.switch * self.port + self.processor) + "\n")
@@ -273,7 +273,7 @@ class fatTree(object):
                         hopCountTotal += float(count) * float(mean)
                         hopCountCount += float(count)
                 elif len(list) == 8:
-                    nodetype, value = list[6:9]
+                    nodetype, value = list[6:8]
                     if nodetype == "timeCount":
                         timeCount = float(value)
                     elif nodetype == "flitReceived":
