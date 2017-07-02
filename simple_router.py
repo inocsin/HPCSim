@@ -100,6 +100,7 @@ class SimpleRouter(object):
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
+        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0e9 / self.datarate * self.flitsize * 8) + 1) + "\n")
 
         headfile.close()
 

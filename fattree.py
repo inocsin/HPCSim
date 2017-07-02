@@ -19,6 +19,7 @@ class fatTree(object):
         :param datarate: the datarate of the link in Gbps
         :param packetsize: the packet size in Byte
         :param flitsize: the flit size in Byte
+        :param routerDelay: router path-through latency in ns
         :return:
         """
         self.port = port  # port number
@@ -37,6 +38,7 @@ class fatTree(object):
         self.bufferDepth = bufferDepth
         self.vc = vc
         self.routerDelay = routerDelay
+
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -227,6 +229,7 @@ class fatTree(object):
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
+        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0 / self.datarate * self.flitsize * 8) + 1) + "\n")
         headfile.write("//****************below is fat_tree attribute************\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
