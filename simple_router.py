@@ -100,8 +100,7 @@ class SimpleRouter(object):
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
-        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0e9 / self.datarate * self.flitsize * 8) + 1) + "\n")
-
+        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0e9 * self.datarate / (self.flitsize * 8)) + 1) + "\n")
         headfile.close()
 
 
@@ -202,8 +201,9 @@ class SimpleRouter(object):
         plt.show()
 
 
-#port, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay
-tianhe_router = SimpleRouter(24, 0, 14, 8, 128, 4, 4, 3, 100)
+
+tianhe_router = SimpleRouter(port=24, delay=0, datarate=14, lane=8, packetsize=128,
+                             flitsize=4, bufferDepth=4, vc=3, routerDelay=100)
 tianhe_router.createNed()
 tianhe_router.createHeader()
 tianhe_router.plotResult()

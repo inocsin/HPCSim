@@ -229,7 +229,7 @@ class fatTree(object):
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
-        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0 / self.datarate * self.flitsize * 8) + 1) + "\n")
+        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0 * self.datarate / (self.flitsize * 8)) + 1) + "\n")
         headfile.write("//****************below is fat_tree attribute************\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
@@ -246,7 +246,7 @@ class fatTree(object):
         throughput, injection rate, latency
         :return:
         """
-        filenames = glob.glob('./log/*.txt')
+        filenames = glob.glob('./data/100/*.txt')
         # each row is a different simulation result
         # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
         results = []
@@ -262,6 +262,7 @@ class fatTree(object):
             flitReceived = 0
             flitSent = 0
             timeCount = 0
+            packetDropped = 0
 
             for line in lines:
                 line = line.strip()
@@ -283,16 +284,19 @@ class fatTree(object):
                         flitReceived += float(value)
                     elif nodetype == "flitSent":
                         flitSent += float(value)
+                    elif nodetype == "packetDropped":
+                        packetDropped += float(value)
             txtfile.close()
             if flitDelayTimeCount != 0 and hopCountCount != 0:
-                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, timeCount])
+                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, packetDropped, timeCount])
         # each row in answers is a different simulation result
         # each column represent injectionRate, throughput, averageLatency
         answers = []
         for result in results:
             # print result
-            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount = result
-            injectionRate = 1.0 * flitSent / (timeCount * self.processor)
+            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, packetDropped, timeCount = result
+            # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
+            injectionRate = 1.0 * (flitSent + packetDropped * self.flitlength) / (timeCount * self.processor)
             throughtput = 1.0 * flitReceived / (timeCount * self.processor)
             answers.append([injectionRate, throughtput, avgFlitDelayTime])
 
@@ -306,12 +310,14 @@ class fatTree(object):
         axe1 = figure.add_subplot(121)
         axe2 = figure.add_subplot(122)
         plt.sca(axe1)
+        plt.scatter(plotData[:,0], plotData[:,1])
         plt.plot(plotData[:,0], plotData[:,1], linewidth=2)
         plt.xlabel("Injection Rate")
         plt.ylabel("Throughput")
         plt.title("Injection Rate vs Throughput")
 
         plt.sca(axe2)
+        # plt.scatter(plotData[:,0], plotData[:,2])
         plt.plot(plotData[:,0], plotData[:,2], linewidth=2)
         plt.xlabel("Injection Rate")
         plt.ylabel("Average Latency")
@@ -327,7 +333,9 @@ class fatTree(object):
 
 # main function
 # port, level, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay
-fattree = fatTree(16,3,5*10,14,8,128,4,4,3,100)
+fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
+                  lane=8, packetsize=128, flitsize=4,
+                  bufferDepth=4, vc=3, routerDelay=500)
 # print fattree.swpid2swlid(319)
 # print fattree.swlid2swpid(20707)
 # print fattree.swpid2swlid(255)
@@ -343,4 +351,4 @@ fattree = fatTree(16,3,5*10,14,8,128,4,4,3,100)
 fattree.createNed()
 fattree.createHeader()
 
-# fattree.plotResult()
+fattree.plotResult()

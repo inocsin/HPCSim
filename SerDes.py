@@ -5,14 +5,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 total_tech_scale = []
+total_voltage = []
 total_channel_loss = [24, 21, 50, 18.4]
 total_power = [602, 288, 403, 247.3]
 
-tx_tech_scale = []
+tx_tech_scale = [40, ]
+tx_voltage = [1.5, ]
+tx_output_power = []
 tx_channel_loss = [24, 21, 4.5, 7.5, 18.4, 6]
 tx_power = [200, 152, 145, 97, 105.1, 120]
 
-rx_tech_scale = []
+rx_tech_scale = [40, ]
+rx_voltage = [1, ]
+rx_receive_power = []
 rx_channel_loss = [24, 21, 23, 14.8, 40, 50, 18.4]
 rx_power = [382, 136, 230, 102, 453, 320, 142.2]
 
