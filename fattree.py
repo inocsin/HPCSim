@@ -37,7 +37,12 @@ class fatTree(object):
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
         self.bufferDepth = bufferDepth
         self.vc = vc
-        self.routerDelay = routerDelay
+        self.routerDelay = routerDelay # in ns
+        self.freq = self.datarate * 1.0e9 / (self.flitsize * 8)
+        self.simStartTime = 1 # start from 1s
+        self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2
+        # denote the router path-trough latency
+        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1
 
 
     def debugPrint(self):
@@ -228,8 +233,9 @@ class fatTree(object):
         headfile.write("#define VC " + str(self.vc) + "\n")
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
-        headfile.write("#define FREQ " + str(self.datarate * 1.0e9 / (self.flitsize * 8)) + "\n")
-        headfile.write("#define OutBufferDepth " + str(int(self.routerDelay * 1.0 * self.datarate / (self.flitsize * 8)) + 1) + "\n")
+        headfile.write("#define FREQ " + str(self.freq) + "\n")
+        headfile.write("#define OutBufferDepth " + str(self.outBufferDepth) + "\n")
+        headfile.write("#define RecordStartTime " + str(self.recordStartTime) + '\n')
         headfile.write("//****************below is fat_tree attribute************\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
