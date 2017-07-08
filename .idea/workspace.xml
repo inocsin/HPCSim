@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3d161120-ad30-4b07-9bae-b0a8090893c9" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/data/500/1.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/data/500/2.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/data/500/5.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fattree.py" afterPath="$PROJECT_DIR$/fattree.py" />
     </list>
     <ignored path="HPCSim.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -38,8 +34,8 @@
       <file leaf-file-name="fattree.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fattree.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="3.4104347">
-              <caret line="311" column="22" selection-start-line="311" selection-start-column="22" selection-end-line="311" selection-end-column="22" />
+            <state vertical-scroll-proportion="-3.5286956">
+              <caret line="241" column="69" selection-start-line="241" selection-start-column="69" selection-end-line="241" selection-end-column="69" />
               <folding>
                 <element signature="e#128#137#0" expanded="true" />
               </folding>
@@ -101,7 +97,7 @@
         <entry file="file://$PROJECT_DIR$/SerDes.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="17" column="22" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
+              <caret line="19" column="22" selection-start-line="19" selection-start-column="22" selection-end-line="19" selection-end-column="22" />
               <folding />
             </state>
           </provider>
@@ -963,7 +959,7 @@
     <entry file="file://$PROJECT_DIR$/SerDes.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="22" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
+          <caret line="19" column="22" selection-start-line="19" selection-start-column="22" selection-end-line="19" selection-end-column="22" />
           <folding />
         </state>
       </provider>
@@ -1010,8 +1006,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fattree.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="3.4104347">
-          <caret line="311" column="22" selection-start-line="311" selection-start-column="22" selection-end-line="311" selection-end-column="22" />
+        <state vertical-scroll-proportion="-3.5286956">
+          <caret line="241" column="69" selection-start-line="241" selection-start-column="69" selection-end-line="241" selection-end-column="69" />
           <folding>
             <element signature="e#128#137#0" expanded="true" />
           </folding>
