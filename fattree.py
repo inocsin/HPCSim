@@ -252,7 +252,7 @@ class fatTree(object):
         throughput, injection rate, latency
         :return:
         """
-        filenames = glob.glob('./data/100/*.txt')
+        filenames = glob.glob('./data/500/*.txt')
         # each row is a different simulation result
         # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
         results = []
