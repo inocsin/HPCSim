@@ -1,20 +1,23 @@
 #coding:utf-8
 """
-This script automaticly create ned file and header for m port n tree fat tree topology
+This script automaticly create ned file and header for m port n tree Fat-Tree topology
 plid, swlid用两位表示一位
-windows版本，从anf文件中读取数据，复制到txt文件中进行操作
+linux版本，从sca文件中读取数据，omnet仿真结果只产生sca数据，不产生vec数据
 """
 import re
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from optparse import OptionParser
 
 class fatTree(object):
 
-    def __init__(self, port, level, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay):
+    def __init__(self, port, level, delay, datarate,
+                 lane, packetsize, flitsize,
+                 bufferDepth, vc, routerDelay,
+                 injectionRate):
         """
-
         :param port: number of ports
         :param level: the level of fat-tree
         :param delay: the delay of link in ns, 5ns/m
@@ -45,7 +48,7 @@ class fatTree(object):
         self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2
         # denote the router path-trough latency
         self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1
-
+        self.injectionRate = injectionRate
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -168,7 +171,6 @@ class fatTree(object):
                 switchString.append("router[" + str(swpid) + "].port_" + str(k) + " <--> Channel <--> router[" + str(swpid2) + "].port_" + str(k2) + ";")
         return switchString
 
-
     def createNed(self):
         nedfile = open("result/fat_tree.ned", 'w')
         # write router
@@ -192,7 +194,6 @@ class fatTree(object):
         nedfile.write("\tgates:\n")
         nedfile.write("\t\tinout port;\n")
         nedfile.write("}\n")
-
 
         # writre fat_tree
         nedfile.write("network Fat_tree\n")
@@ -221,11 +222,14 @@ class fatTree(object):
             nedfile.write("\t\t" + switchstr[i] + "\n")
 
         nedfile.write("}\n")
-
         nedfile.close()
+
     def createHeader(self):
         # create fat_tree.h
-        headfile = open("result/fat_tree.h", 'w')
+        headfile = open("result/topoconfig.h", 'w')
+        headfile.write("#ifndef TOPOCONFIG_H_TEMPLATE_\n")
+        headfile.write("#define TOPOCONFIG_H_TEMPLATE_\n")
+        headfile.write("//***********topology parameters***********\n")
         headfile.write("#define PortNum " + str(self.port) + "\n")
         headfile.write("#define ProcessorNum " + str(self.processor) + "\n")
         headfile.write("#define LinkNum " + str(self.switch * self.port + self.processor) + "\n")
@@ -238,14 +242,40 @@ class fatTree(object):
         headfile.write("#define FREQ " + str(self.freq) + "\n")
         headfile.write("#define OutBufferDepth " + str(self.outBufferDepth) + "\n")
         headfile.write("#define RecordStartTime " + str(self.recordStartTime) + '\n')
-        headfile.write("//****************below is fat_tree attribute************\n")
+        headfile.write("//*************unchangable variable***************\n")
+        headfile.write("#define CLK_CYCLE 1/FREQ\n")
+        headfile.write("#define Sim_Start_Time 1\n")
+        headfile.write("#define TimeScale 0.1\n")
+        headfile.write("//*************injection mode***************\n")
+        headfile.write("#define UNIFORM\n")
+        headfile.write("#define LAMBDA 7\n")
+        headfile.write("#define INJECTION_RATE " + str(self.injectionRate) + "\n")
+        headfile.write("//*************debug infomation***************\n")
+        headfile.write("#define Verbose 1\n")
+        headfile.write("#define VERBOSE_DEBUG_MESSAGES 1\n")
+        headfile.write("#define VERBOSE_DETAIL_DEBUG_MESSAGES 2\n")
+        headfile.write("//************power infomation***************\n")
+        headfile.write("#define LVT 1\n")
+        headfile.write("#define NVT 2\n")
+        headfile.write("#define HVT 3\n")
+        headfile.write("#define VDD 1.0\n")
+        headfile.write("#define PARM(x) PARM_ ## x\n")
+        headfile.write("#define PARM_TECH_POINT 45\n")
+        headfile.write("#define PARM_TRANSISTOR_TYPE NVT\n")
+        headfile.write("#define FlitWidth FlitSize * 8\n")
+        headfile.write("//***********end of parameter definition*****\n")
+        headfile.write("#endif /* TOPOCONFIG_H_TEMPLATE_ */")
+
+        # create fat_tree.h
+        headfile = open("result/fat_tree.h", 'w')
+        headfile.write("#ifndef FAT_TREE_H_\n")
+        headfile.write("#define FAT_TREE_H_\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
         headfile.write("#define SwTop " + str(self.switchTop) + "\n")
         headfile.write("#define SwLower " + str(self.switchLower) + "\n")
         headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
-
-
+        headfile.write("#endif /* FAT_TREE_H_ */\n")
         headfile.close()
 
     def plotResult(self):
@@ -333,17 +363,12 @@ class fatTree(object):
         # plt.legend()
         plt.show()
 
+# define parser
+parser = OptionParser()
+parser.add_option("-i", "--injection_rate", dest="injection_rate", help="Injection Rate")
+parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", help="Pass Through Latency in ns")
+option, args = parser.parse_args()
 
-
-
-
-
-
-# main function
-# port, level, delay, datarate, lane, packetsize, flitsize, bufferDepth, vc, routerDelay
-fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
-                  lane=8, packetsize=128, flitsize=4,
-                  bufferDepth=4, vc=3, routerDelay=500)
 # print fattree.swpid2swlid(319)
 # print fattree.swlid2swpid(20707)
 # print fattree.swpid2swlid(255)
@@ -357,9 +382,16 @@ fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
 # print fattree.plid2ppid(150707)
 
 
-
+# main function
 if __name__ == '__main__':
-    print sys.argv
-    # fattree.createNed()
-    # fattree.createHeader()
+    fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
+                  lane=8, packetsize=128, flitsize=4,
+                  bufferDepth=4, vc=3, routerDelay=float(option.pass_through_latency),
+                  injectionRate=float(option.injection_rate))
+    # print option.injection_rate
+    # print option.pass_through_latency
+
+    # print sys.argv
+    fattree.createNed()
+    fattree.createHeader()
     # fattree.plotResult()
