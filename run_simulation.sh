@@ -13,6 +13,8 @@ do
     do
         #echo $latency
         #echo $injection
+		echo "cd $SCRIPT_HOME"
+		cd $SCRIPT_HOME
 		echo "python $SCRIPT_HOME/FatTreeAuto.py --injection_rate=$injection --pass_through_latency=$latency"
         python $SCRIPT_HOME/FatTreeAuto.py --injection_rate=$injection --pass_through_latency=$latency
         echo "rm $SIMULATION_HOME/fat_tree.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned"
