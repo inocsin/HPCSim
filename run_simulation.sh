@@ -3,7 +3,7 @@ SIMULATION_HOME=/home/zhangyi/omnetpp-5.1.1/samples/hpcsimulator
 SCRIPT_HOME=/home/zhangyi/HPCSim 
 echo "SIMUALTION_HOME is ${SIMULATION_HOME}"
 echo "SCRIPT_HOME is ${SCRIPT_HOME}"
-PassThroughLatency=(100 500)
+PassThroughLatency=(50 100 200 300 500 800)
 #PassThroughLatency=(100)
 InjectionRate=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3)
 #InjectionRate=(0.1)
