@@ -13,10 +13,10 @@ from optparse import OptionParser
 
 class fatTree(object):
 
-    def __init__(self, port, level, delay, datarate,
+    def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
                  bufferDepth, vc, routerDelay,
-                 injectionRate):
+                 injectionRate, linkLatency = 5*10):
         """
         :param port: number of ports
         :param level: the level of fat-tree
@@ -34,7 +34,7 @@ class fatTree(object):
         self.switchTop = (port / 2) ** (level - 1)  # number of switches in the top level
         self.switchLower = self.switch - self.switchTop  # number of lower switch
         self.switchLowerEach = self.switchLower / (self.level - 1)  # number of switches in each lower layer
-        self.delay = delay  # ns
+        self.delay = linkLatency  # ns
         self.datarate = datarate * lane  # Gbps
         self.rawDatarate = datarate  # Gbps
         self.packetsize = packetsize  # Byte
@@ -413,6 +413,7 @@ class fatTree(object):
 parser = OptionParser()
 parser.add_option("-i", "--injection_rate", dest="injection_rate", help="Injection Rate")
 parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", help="Pass Through Latency in ns")
+parser.add_option("-l", "--link_latency", dest="link_latency", help="Link Latency in ns")
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -430,10 +431,10 @@ option, args = parser.parse_args()
 
 # main function
 if __name__ == '__main__':
-    fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
+    fattree = fatTree(port=16, level=3, datarate=14,
                   lane=8, packetsize=128, flitsize=4,
                   bufferDepth=4, vc=3, routerDelay=float(option.pass_through_latency),
-                  injectionRate=float(option.injection_rate))
+                  injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
     # print option.injection_rate
     # print option.pass_through_latency
 
