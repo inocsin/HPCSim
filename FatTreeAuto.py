@@ -15,7 +15,7 @@ class fatTree(object):
 
     def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
-                 bufferDepth, vc, routerDelay,
+                 bufferDepth, vc, crossPointBufferDepth, routerDelay,
                  injectionRate, linkLatency = 5*10):
         """
         :param port: number of ports
@@ -41,6 +41,7 @@ class fatTree(object):
         self.flitsize = flitsize  # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
         self.bufferDepth = bufferDepth
+        self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
         self.freq = self.datarate * 1.0e9 / (self.flitsize * 8)
@@ -240,6 +241,7 @@ class fatTree(object):
         headfile.write("#define VC " + str(self.vc) + "\n")
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define CrossPointBufferDepth " + str(self.crossPointBufferDepth) + '\n')
         headfile.write("#define FREQ " + str(self.freq) + "\n")
         headfile.write("#define OutBufferDepth " + str(self.outBufferDepth) + "\n")
         headfile.write("#define RecordStartTime " + str(self.recordStartTime) + '\n')
@@ -268,15 +270,15 @@ class fatTree(object):
         headfile.write("#endif /* TOPOCONFIG_H_TEMPLATE_ */")
 
         # create fat_tree.h
-        headfile = open("result/fat_tree.h", 'w')
-        headfile.write("#ifndef FAT_TREE_H_\n")
-        headfile.write("#define FAT_TREE_H_\n")
+        headfile = open("result/fat_tree_topo.h", 'w')
+        headfile.write("#ifndef FAT_TREE_TOPO_H_\n")
+        headfile.write("#define FAT_TREE_TOPO_H_\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
         headfile.write("#define SwTop " + str(self.switchTop) + "\n")
         headfile.write("#define SwLower " + str(self.switchLower) + "\n")
         headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
-        headfile.write("#endif /* FAT_TREE_H_ */\n")
+        headfile.write("#endif /* FAT_TREE_TOPO_H_ */\n")
         headfile.close()
 
     def createINI(self):
@@ -433,13 +435,14 @@ option, args = parser.parse_args()
 if __name__ == '__main__':
     fattree = fatTree(port=16, level=3, datarate=14,
                   lane=8, packetsize=128, flitsize=4,
-                  bufferDepth=4, vc=3, routerDelay=float(option.pass_through_latency),
+                  bufferDepth=4, vc=3, crossPointBufferDepth=8,
+                  routerDelay=float(option.pass_through_latency),
                   injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
     # print option.injection_rate
     # print option.pass_through_latency
 
     # print sys.argv
-    # fattree.createNed()
-    # fattree.createHeader()
-    # fattree.createINI()
-    fattree.plotResult()
+    fattree.createNed()
+    fattree.createHeader()
+    fattree.createINI()
+    # fattree.plotResult()
