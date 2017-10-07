@@ -433,11 +433,16 @@ option, args = parser.parse_args()
 
 # main function
 if __name__ == '__main__':
-    fattree = fatTree(port=16, level=3, datarate=14,
-                  lane=8, packetsize=128, flitsize=4,
-                  bufferDepth=4, vc=3, crossPointBufferDepth=8,
-                  routerDelay=float(option.pass_through_latency),
-                  injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
+    # fattree = fatTree(port=16, level=3, datarate=14,
+    #               lane=8, packetsize=128, flitsize=4,
+    #               bufferDepth=4, vc=3, crossPointBufferDepth=8,
+    #               routerDelay=float(option.pass_through_latency),
+    #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
+    fattree = fatTree(port=4, level=3, datarate=14,
+              lane=8, packetsize=128, flitsize=4,
+              bufferDepth=4, vc=3, crossPointBufferDepth=8,
+              routerDelay=float(option.pass_through_latency),
+              injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
     # print option.injection_rate
     # print option.pass_through_latency
 
