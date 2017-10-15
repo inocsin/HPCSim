@@ -16,7 +16,7 @@ class fatTree(object):
     def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
                  bufferDepth, vc, crossPointBufferDepth, routerDelay,
-                 injectionRate, linkLatency = 5*10, baseline=False):
+                 injectionRate, linkLatency=5*10, baseline=False):
         """
         :param port: number of ports
         :param level: the level of fat-tree
@@ -427,6 +427,7 @@ parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", h
 parser.add_option("-l", "--link_latency", dest="link_latency", help="Link Latency in ns")
 parser.add_option("-b", "--baseline", dest="baseline", help="Baseline router")
 parser.add_option("-u", "--buffer", dest="buffer", help="Input buffer depth")
+parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane")
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -450,7 +451,7 @@ if __name__ == '__main__':
     #               routerDelay=float(option.pass_through_latency),
     #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
 
-    fattree = fatTree(port=4, level=3, datarate=14,
+    fattree = fatTree(port=4, level=3, datarate=float(option.datarate),
               lane=8, packetsize=16, flitsize=4,
               bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
