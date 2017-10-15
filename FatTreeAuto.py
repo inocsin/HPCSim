@@ -44,7 +44,7 @@ class fatTree(object):
         self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
-        self.freq = self.datarate * 1.0e9 / (self.flitsize * 8)
+        self.freq = self.datarate * 1.0e9 / (self.flitsize * 8) if self.datarate != 0 else 3500000000.0
         self.simStartTime = 1  # start from 1.0s
         self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2 + 0.0000006
         self.simEndTime = self.recordStartTime + 0.00002  # valid simulation time
