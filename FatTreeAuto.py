@@ -13,10 +13,10 @@ from optparse import OptionParser
 
 class fatTree(object):
 
-    def __init__(self, port, level, delay, datarate,
+    def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
-                 bufferDepth, vc, routerDelay,
-                 injectionRate):
+                 bufferDepth, vc, crossPointBufferDepth, routerDelay,
+                 injectionRate, linkLatency=5*10, baseline=False):
         """
         :param port: number of ports
         :param level: the level of fat-tree
@@ -34,22 +34,24 @@ class fatTree(object):
         self.switchTop = (port / 2) ** (level - 1)  # number of switches in the top level
         self.switchLower = self.switch - self.switchTop  # number of lower switch
         self.switchLowerEach = self.switchLower / (self.level - 1)  # number of switches in each lower layer
-        self.delay = delay  # ns
+        self.delay = linkLatency  # ns
         self.datarate = datarate * lane  # Gbps
         self.rawDatarate = datarate  # Gbps
         self.packetsize = packetsize  # Byte
         self.flitsize = flitsize  # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
-        self.bufferDepth = bufferDepth
+        self.bufferDepth = bufferDepth  # in packet
+        self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
         self.freq = self.datarate * 1.0e9 / (self.flitsize * 8)
         self.simStartTime = 1  # start from 1.0s
-        self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2
-        self.simEndTime = self.recordStartTime + 0.000004  # valid simulation time
+        self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2 + 0.0000006
+        self.simEndTime = self.recordStartTime + 0.00002  # valid simulation time
         # denote the router path-trough latency
-        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1
+        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 3
         self.injectionRate = injectionRate
+        self.baseline = False if baseline == 0 else True
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -175,7 +177,10 @@ class fatTree(object):
     def createNed(self):
         nedfile = open("result/fat_tree.ned", 'w')
         # write router
-        nedfile.write("simple FtRouter\n")
+        if self.baseline == True:
+            nedfile.write("simple FtRouter\n")
+        else:
+            nedfile.write("simple HighRadixRouter\n")
         nedfile.write("{\n")
         nedfile.write("\tparameters:\n")
         nedfile.write("\n")
@@ -202,11 +207,16 @@ class fatTree(object):
         nedfile.write("\ttypes:\n")
         nedfile.write("\t\tchannel Channel extends ned.DatarateChannel\n")
         nedfile.write("\t\t{\n")
-        nedfile.write("\t\t\tdelay = " + str(self.delay) + "ns;\n")
-        nedfile.write("\t\t\tdatarate = " + str(self.datarate) + "Gbps;\n")
+        if self.delay != 0:
+            nedfile.write("\t\t\tdelay = " + str(self.delay) + "ns;\n")
+        if self.datarate != 0:
+            nedfile.write("\t\t\tdatarate = " + str(self.datarate) + "Gbps;\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\tsubmodules:\n")
-        nedfile.write("\t\trouter[" + str(self.switch) + "]: FtRouter {\n")
+        if self.baseline == True:
+            nedfile.write("\t\trouter[" + str(self.switch) + "]: FtRouter {\n")
+        else:
+            nedfile.write("\t\trouter[" + str(self.switch) + "]: HighRadixRouter {\n")
         nedfile.write("\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\t\tprocessor[" + str(self.processor) + "]: FtProcessor{\n")
@@ -240,6 +250,7 @@ class fatTree(object):
         headfile.write("#define VC " + str(self.vc) + "\n")
         headfile.write("#define BufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
         headfile.write("#define ProcessorBufferDepth " + str(self.bufferDepth) + " * FlitLength" + "\n")
+        headfile.write("#define CrossPointBufferDepth " + str(self.crossPointBufferDepth) + '\n')
         headfile.write("#define FREQ " + str(self.freq) + "\n")
         headfile.write("#define OutBufferDepth " + str(self.outBufferDepth) + "\n")
         headfile.write("#define RecordStartTime " + str(self.recordStartTime) + '\n')
@@ -268,15 +279,15 @@ class fatTree(object):
         headfile.write("#endif /* TOPOCONFIG_H_TEMPLATE_ */")
 
         # create fat_tree.h
-        headfile = open("result/fat_tree.h", 'w')
-        headfile.write("#ifndef FAT_TREE_H_\n")
-        headfile.write("#define FAT_TREE_H_\n")
+        headfile = open("result/fat_tree_topo.h", 'w')
+        headfile.write("#ifndef FAT_TREE_TOPO_H_\n")
+        headfile.write("#define FAT_TREE_TOPO_H_\n")
         headfile.write("#define LevelNum " + str(self.level) + "\n")
         headfile.write("#define SwitchNum " + str(self.switch) + "\n")
         headfile.write("#define SwTop " + str(self.switchTop) + "\n")
         headfile.write("#define SwLower " + str(self.switchLower) + "\n")
         headfile.write("#define SwLowEach " + str(self.switchLowerEach) + "\n")
-        headfile.write("#endif /* FAT_TREE_H_ */\n")
+        headfile.write("#endif /* FAT_TREE_TOPO_H_ */\n")
         headfile.close()
 
     def createINI(self):
@@ -300,108 +311,123 @@ class fatTree(object):
         throughput, injection rate, latency
         :return:
         """
-        filenames = glob.glob('./data/100/*.sca')
-        # each row is a different simulation result
-        # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
-        results = []
+        file_list = [50, 100, 200]
+        dataSummary = []
 
-        for filename in filenames:
-            txtfile = open(filename, 'r')
-            lines = txtfile.readlines()
-            # scalar variable for each file
+        for i in range(len(file_list)):
+            file_path = './data2/' + str(file_list[i]) + '/*.sca'
+            filenames = glob.glob(file_path)
+            # each row is a different simulation result
+            # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
+            results = []
 
-            creditMsgDelayTimeCount = 0
-            creditMsgDelayTimeTotal = 0
-            flitByHop = 0
-            flitDelayTimeCount = 0
-            flitDelayTimeTotal = 0
-            flitReceived = 0
-            flitSent = 0
-            hopCountCount = 0
-            hopCountTotal = 0
-            packageReceived = 0
-            packageSent = 0
-            packetDelayTimeCount = 0
-            packetDelayTimeTotal = 0
-            packetDropped = 0
-            realMaxHandleMessagetime = 0
-            realMaxRouterTime = 0
-            realRouterTime = 0
-            realTotalHandleMessageTime = 0
-            realTotalTime = 0
-            routerPower = 0
-            timeCount = 0
+            for filename in filenames:
+                txtfile = open(filename, 'r')
+                lines = txtfile.readlines()
+                # scalar variable for each file
 
-            for line in lines:
-                line = line.strip()
-                list = re.split(" \t|  | |\t", line)
-                # print list
-                if len(list) == 4 and list[0] == 'scalar':
-                    _, _, nodetype, value = list[:]
-                    if nodetype == "flitDelayTimeTotal":
-                        flitDelayTimeTotal += float(value)
-                    if nodetype == "flitDelayTimeCount":
-                        flitDelayTimeCount += float(value)
-                    elif nodetype == "flitReceived":
-                        flitReceived += float(value)
-                    elif nodetype == "flitSent":
-                        flitSent += float(value)
-                    elif nodetype == "packetDelayTimeTotal":
-                        packetDelayTimeTotal += float(value)
-                    elif nodetype == "packetDelayTimeCount":
-                        packetDelayTimeCount += float(value)
-                    elif nodetype == "packetDropped":
-                        packetDropped += float(value)
-                    elif nodetype == "routerPower":
-                        routerPower += routerPower
-                    elif nodetype == "timeCount":
-                        timeCount = float(value)
+                creditMsgDelayTimeCount = 0
+                creditMsgDelayTimeTotal = 0
+                flitByHop = 0
+                flitDelayTimeCount = 0
+                flitDelayTimeTotal = 0
+                flitReceived = 0
+                flitSent = 0
+                hopCountCount = 0
+                hopCountTotal = 0
+                packageReceived = 0
+                packageSent = 0
+                packetDelayTimeCount = 0
+                packetDelayTimeTotal = 0
+                packetDropped = 0
+                realMaxHandleMessagetime = 0
+                realMaxRouterTime = 0
+                realRouterTime = 0
+                realTotalHandleMessageTime = 0
+                realTotalTime = 0
+                routerPower = 0
+                timeCount = 0
 
-            txtfile.close()
-            assert flitDelayTimeCount != 0 and packetDelayTimeCount != 0 and timeCount != 0
+                for line in lines:
+                    line = line.strip()
+                    list = re.split(" \t|  | |\t", line)
+                    # print list
+                    if len(list) == 4 and list[0] == 'scalar':
+                        _, _, nodetype, value = list[:]
+                        if nodetype == "flitDelayTimeTotal":
+                            flitDelayTimeTotal += float(value)
+                        if nodetype == "flitDelayTimeCount":
+                            flitDelayTimeCount += float(value)
+                        elif nodetype == "flitReceived":
+                            flitReceived += float(value)
+                        elif nodetype == "flitSent":
+                            flitSent += float(value)
+                        elif nodetype == "packetDelayTimeTotal":
+                            packetDelayTimeTotal += float(value)
+                        elif nodetype == "packetDelayTimeCount":
+                            packetDelayTimeCount += float(value)
+                        elif nodetype == "packetDropped":
+                            packetDropped += float(value)
+                        elif nodetype == "routerPower":
+                            routerPower += routerPower
+                        elif nodetype == "timeCount":
+                            timeCount = float(value)
 
-            results.append([flitDelayTimeTotal / flitDelayTimeCount, flitReceived, flitSent, packetDropped, timeCount])
-        # each row in answers is a different simulation result
-        # each column represent injectionRate, throughput, averageLatency
-        answers = []
-        for result in results:
-            # print result
-            avgFlitDelayTime, flitReceived, flitSent, packetDropped, timeCount = result
-            # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
-            injectionRate = 1.0 * (flitSent + packetDropped * self.flitlength) / (timeCount * self.processor)
-            throughtput = 1.0 * flitReceived / (timeCount * self.processor)
-            answers.append([injectionRate, throughtput, avgFlitDelayTime])
+                txtfile.close()
+                assert flitDelayTimeCount != 0 and packetDelayTimeCount != 0 and timeCount != 0
 
-        rawData = np.array(answers)
-        index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
-        plotData = rawData[index[:,0],:] # sort according to first column
-        print plotData
+                results.append([flitDelayTimeTotal / flitDelayTimeCount, flitReceived, flitSent, packetDropped, timeCount])
+            # each row in answers is a different simulation result
+            # each column represent injectionRate, throughput, averageLatency
+            answers = []
+            for result in results:
+                # print result
+                avgFlitDelayTime, flitReceived, flitSent, packetDropped, timeCount = result
+                # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
+                injectionRate = 1.0 * (flitSent + packetDropped * self.flitlength) / (timeCount * self.processor)
+                throughtput = 1.0 * flitReceived / (timeCount * self.processor)
+                answers.append([injectionRate, throughtput, avgFlitDelayTime])
+
+            rawData = np.array(answers)
+            index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
+            plotData = rawData[index[:,0],:] # sort according to first column
+
+            print plotData
+            dataSummary.append(plotData)
+
         # print rawData
 
         figure = plt.figure(1, figsize=(16, 8))
         axe1 = figure.add_subplot(121)
         axe2 = figure.add_subplot(122)
         plt.sca(axe1)
-        plt.scatter(plotData[:,0], plotData[:,1])
-        plt.plot(plotData[:,0], plotData[:,1], linewidth=2)
+        for i in range(len(file_list)):
+            plt.scatter(dataSummary[i][:,0], dataSummary[i][:,1])
+            plt.plot(dataSummary[i][:,0], dataSummary[i][:,1], linewidth=2)
         plt.xlabel("Injection Rate")
         plt.ylabel("Throughput")
         plt.title("Injection Rate vs Throughput")
+        plt.legend([str(i) for i in file_list], loc='lower right')
 
         plt.sca(axe2)
         # plt.scatter(plotData[:,0], plotData[:,2])
-        plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, linewidth=2)
+        for i in range(len(file_list)):
+            plt.plot(dataSummary[i][:,0], dataSummary[i][:,2] * 1.0e9, linewidth=2)
         plt.xlabel("Injection Rate")
         plt.ylabel("Average Latency / ns")
         plt.title("Injection Rate vs AverageLatency")
 
-        # plt.legend()
+        plt.legend([str(i) for i in file_list])
         plt.show()
 
 # define parser
 parser = OptionParser()
 parser.add_option("-i", "--injection_rate", dest="injection_rate", help="Injection Rate")
 parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", help="Pass Through Latency in ns")
+parser.add_option("-l", "--link_latency", dest="link_latency", help="Link Latency in ns")
+parser.add_option("-b", "--baseline", dest="baseline", help="Baseline router")
+parser.add_option("-u", "--buffer", dest="buffer", help="Input buffer depth")
+parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane")
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -419,10 +445,18 @@ option, args = parser.parse_args()
 
 # main function
 if __name__ == '__main__':
-    fattree = fatTree(port=16, level=3, delay=5*10, datarate=14,
-                  lane=8, packetsize=128, flitsize=4,
-                  bufferDepth=4, vc=3, routerDelay=float(option.pass_through_latency),
-                  injectionRate=float(option.injection_rate))
+    # fattree = fatTree(port=16, level=3, datarate=14,
+    #               lane=8, packetsize=128, flitsize=4,
+    #               bufferDepth=4, vc=3, crossPointBufferDepth=8,
+    #               routerDelay=float(option.pass_through_latency),
+    #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
+
+    fattree = fatTree(port=4, level=3, datarate=float(option.datarate),
+              lane=8, packetsize=16, flitsize=4,
+              bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
+              routerDelay=float(option.pass_through_latency),
+              injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency),
+              baseline=int(option.baseline))
     # print option.injection_rate
     # print option.pass_through_latency
 

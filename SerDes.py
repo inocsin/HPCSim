@@ -9,21 +9,23 @@ import matplotlib.pyplot as plt
 # total_channel_loss = [24, 21, 50, 18.4]
 # total_power = [602, 288, 403, 247.3]
 
-tx_tech_scale = [40, 65, 28, 14, 28, 28, 16, 28, 14]
+tx_tech_scale = [40, 65, 28, 14, 28, 28, 16, 20, 28, 14]
 # tx_voltage_supply = [1.5, ]
 # tx_output_voltage =
-tx_datarate = [28, 60, 64, 56, 56, 45, 64, 36, 28]
-tx_channel_loss = [24, 21, 4.5, 7.5, 18.4, 6, 6, 11, 13]
-tx_power = [200, 152, 145, 97, 105.1, 120, 225, 84, 195]
-tx_paper_index = [1, 2, 4, 5, 11, 12, 13, 17, 18]
+tx_datarate = [28, 60, 64, 56, 56, 45, 64, 32.75, 36, 28]
+tx_channel_loss = [24, 21, 4.5, 7.5, 18.4, 6, 6, 27, 11, 13]
+tx_power = [200, 152, 145, 97, 105.1, 120, 225, 188.4, 84, 195]
+tx_paper_index = [1, 2, 4, 5, 11, 12, 13, 16, 17, 18]
 
-rx_tech_scale = [40, 65, 16, 28, 32, 28, 28, 65]
+rx_tech_scale = [40, 65, 16, 28, 32, 28, 28, 20, 65]
 # rx_voltage_supply = [1, ]
 # rx_receive_voltage = []
-rx_datarate = [28, 60, 40, 32, 25.6, 32, 56, 10]
-rx_channel_loss = [24, 21, 23, 14.8, 40, 56, 18.4, 25.3]
-rx_power = [382, 136, 230, 102, 453, 320, 142.2, 87]
-rx_paper_index = [1, 2, 3, 6, 7, 8, 11, 19]
+rx_datarate = [28, 60, 40, 32, 25.6, 32, 56, 32.75, 10]
+rx_channel_loss = [24, 21, 23, 14.8, 40, 56, 18.4, 27, 25.3]
+rx_power = [382, 136, 230, 102, 453, 320, 142.2, 219.8, 87]
+rx_paper_index = [1, 2, 3, 6, 7, 8, 11, 16, 19]
+rx_dfe_tap_larger_than_5 = [False, False, True, False, True, False, False, True, False]
+rx_def_tap_less_than_5 = [not i for i in rx_dfe_tap_larger_than_5]
 
 # sort the data
 tx_channel_loss_index = np.argsort(tx_channel_loss)
@@ -39,8 +41,8 @@ rx_tech_scale = np.array(rx_tech_scale)[rx_channel_loss_index]
 rx_datarate = np.array(rx_datarate)[rx_channel_loss_index]
 rx_power = np.array(rx_power)[rx_channel_loss_index]
 rx_paper_index = np.array(rx_paper_index)[rx_channel_loss_index]
-
-
+rx_dfe_tap_larger_than_5 = np.array(rx_dfe_tap_larger_than_5)[rx_channel_loss_index]
+rx_dfe_tap_less_than_5 = np.array(rx_def_tap_less_than_5)[rx_channel_loss_index]
 # figure 1 power vs channel loss
 tx_fit = np.polyfit(tx_channel_loss, tx_power, 1)
 print tx_fit
@@ -127,7 +129,7 @@ for i in range(len(tx_paper_index)):
                  xy=(tx_channel_loss[i], tx_power_efficiency[i]),
                  xytext=(tx_channel_loss[i], tx_power_efficiency[i]))
 plt.xlabel("Channel Loss [dB]")
-plt.ylabel("Power Efficiency [mW/Gb/s]")
+plt.ylabel("Energy Efficiency [mW/Gb/s]")
 plt.title("Transmitter")
 
 # receiver
@@ -141,7 +143,48 @@ for i in range(len(rx_paper_index)):
                  xy=(rx_channel_loss[i], rx_power_efficiency[i]),
                  xytext=(rx_channel_loss[i], rx_power_efficiency[i]))
 plt.xlabel("Channel Loss [dB]")
-plt.ylabel("Power Efficiency [mW/Gb/s]")
+plt.ylabel("Energy Efficiency [mW/Gb/s]")
 plt.title("Receiver")
 plt.legend()
+plt.show()
+
+# figure 4 Power Efficiency vs channel loss with DFE taps
+rx_power_efficiency = rx_power * 1.0 / rx_datarate
+rx_fit_1 = np.polyfit(rx_channel_loss[rx_dfe_tap_less_than_5], rx_power_efficiency[rx_dfe_tap_less_than_5], 1)
+rx_fit_2 = np.polyfit(rx_channel_loss[rx_dfe_tap_larger_than_5], rx_power_efficiency[rx_dfe_tap_larger_than_5], 1)
+
+figure3 = plt.figure(3, figsize=(16, 8))
+axe1 = figure3.add_subplot(121)
+axe2 = figure3.add_subplot(122)
+# transmitter
+plt.sca(axe1)
+x = np.arange(0.0, 60, 0.01)
+y1 = x * rx_fit_1[0] + rx_fit_1[1]
+plt.plot(x, y1, 'r', linewidth=2)
+plt.ylim(0, 40)
+plt.scatter(tx_channel_loss[rx_dfe_tap_less_than_5], tx_power_efficiency[rx_dfe_tap_less_than_5], marker='.', edgecolors='r')
+for i in range(len(tx_paper_index[rx_dfe_tap_less_than_5])):
+    plt.annotate('['+str(tx_paper_index[rx_dfe_tap_less_than_5][i])+']',
+                 xy=(tx_channel_loss[rx_dfe_tap_less_than_5][i], tx_power_efficiency[rx_dfe_tap_less_than_5][i]),
+                 xytext=(tx_channel_loss[rx_dfe_tap_less_than_5][i], tx_power_efficiency[rx_dfe_tap_less_than_5][i]))
+plt.xlabel("Channel Loss [dB]")
+plt.ylabel("Energy Efficiency [mW/Gb/s]")
+plt.title("Receiver")
+plt.legend(["DFE Tap <=5"])
+# receiver
+plt.sca(axe2)
+x = np.arange(0.0, 60, 0.01)
+
+y2 = x * rx_fit_2[0] + rx_fit_2[1]
+plt.plot(x, y2, 'r', linewidth=2)
+plt.ylim(0, 40)
+plt.scatter(rx_channel_loss[rx_dfe_tap_larger_than_5], rx_power_efficiency[rx_dfe_tap_larger_than_5], marker='.', edgecolors='r')
+for i in range(len(rx_paper_index[rx_dfe_tap_larger_than_5])):
+    plt.annotate('['+str(rx_paper_index[rx_dfe_tap_larger_than_5][i])+']',
+                 xy=(rx_channel_loss[rx_dfe_tap_larger_than_5][i], rx_power_efficiency[rx_dfe_tap_larger_than_5][i]),
+                 xytext=(rx_channel_loss[rx_dfe_tap_larger_than_5][i], rx_power_efficiency[rx_dfe_tap_larger_than_5][i]))
+plt.xlabel("Channel Loss [dB]")
+plt.ylabel("Energy Efficiency [mW/Gb/s]")
+plt.title("Receiver")
+plt.legend(["DEF Tap >5"])
 plt.show()
