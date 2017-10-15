@@ -202,8 +202,8 @@ class SimpleRouter(object):
 
 
 
-tianhe_router = SimpleRouter(port=24, delay=0, datarate=14, lane=8, packetsize=128,
+tianhe_router = SimpleRouter(port=16, delay=0, datarate=14, lane=8, packetsize=16,
                              flitsize=4, bufferDepth=4, vc=3, routerDelay=100)
 tianhe_router.createNed()
 tianhe_router.createHeader()
-tianhe_router.plotResult()
+# tianhe_router.plotResult()

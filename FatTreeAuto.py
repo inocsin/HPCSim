@@ -16,7 +16,7 @@ class fatTree(object):
     def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
                  bufferDepth, vc, crossPointBufferDepth, routerDelay,
-                 injectionRate, linkLatency = 5*10):
+                 injectionRate, linkLatency = 5*10, baseline=False):
         """
         :param port: number of ports
         :param level: the level of fat-tree
@@ -40,17 +40,18 @@ class fatTree(object):
         self.packetsize = packetsize  # Byte
         self.flitsize = flitsize  # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
-        self.bufferDepth = bufferDepth
+        self.bufferDepth = bufferDepth  # in packet
         self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
         self.freq = self.datarate * 1.0e9 / (self.flitsize * 8)
         self.simStartTime = 1  # start from 1.0s
-        self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2
-        self.simEndTime = self.recordStartTime + 0.000004  # valid simulation time
+        self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2 + 0.0000006
+        self.simEndTime = self.recordStartTime + 0.00002  # valid simulation time
         # denote the router path-trough latency
-        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1
+        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 3
         self.injectionRate = injectionRate
+        self.baseline = False if baseline == 0 else True
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -176,7 +177,10 @@ class fatTree(object):
     def createNed(self):
         nedfile = open("result/fat_tree.ned", 'w')
         # write router
-        nedfile.write("simple FtRouter\n")
+        if self.baseline == True:
+            nedfile.write("simple FtRouter\n")
+        else:
+            nedfile.write("simple HighRadixRouter\n")
         nedfile.write("{\n")
         nedfile.write("\tparameters:\n")
         nedfile.write("\n")
@@ -203,11 +207,16 @@ class fatTree(object):
         nedfile.write("\ttypes:\n")
         nedfile.write("\t\tchannel Channel extends ned.DatarateChannel\n")
         nedfile.write("\t\t{\n")
-        nedfile.write("\t\t\tdelay = " + str(self.delay) + "ns;\n")
-        nedfile.write("\t\t\tdatarate = " + str(self.datarate) + "Gbps;\n")
+        if self.delay != 0:
+            nedfile.write("\t\t\tdelay = " + str(self.delay) + "ns;\n")
+        if self.datarate != 0:
+            nedfile.write("\t\t\tdatarate = " + str(self.datarate) + "Gbps;\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\tsubmodules:\n")
-        nedfile.write("\t\trouter[" + str(self.switch) + "]: FtRouter {\n")
+        if self.baseline == True:
+            nedfile.write("\t\trouter[" + str(self.switch) + "]: FtRouter {\n")
+        else:
+            nedfile.write("\t\trouter[" + str(self.switch) + "]: HighRadixRouter {\n")
         nedfile.write("\n")
         nedfile.write("\t\t}\n")
         nedfile.write("\t\tprocessor[" + str(self.processor) + "]: FtProcessor{\n")
@@ -416,6 +425,8 @@ parser = OptionParser()
 parser.add_option("-i", "--injection_rate", dest="injection_rate", help="Injection Rate")
 parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", help="Pass Through Latency in ns")
 parser.add_option("-l", "--link_latency", dest="link_latency", help="Link Latency in ns")
+parser.add_option("-b", "--baseline", dest="baseline", help="Baseline router")
+parser.add_option("-u", "--buffer", dest="buffer", help="Input buffer depth")
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -438,11 +449,13 @@ if __name__ == '__main__':
     #               bufferDepth=4, vc=3, crossPointBufferDepth=8,
     #               routerDelay=float(option.pass_through_latency),
     #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
+
     fattree = fatTree(port=4, level=3, datarate=14,
-              lane=8, packetsize=128, flitsize=4,
-              bufferDepth=4, vc=3, crossPointBufferDepth=8,
+              lane=8, packetsize=16, flitsize=4,
+              bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
-              injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
+              injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency),
+              baseline=int(option.baseline))
     # print option.injection_rate
     # print option.pass_through_latency
 
