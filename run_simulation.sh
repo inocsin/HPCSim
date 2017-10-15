@@ -34,7 +34,7 @@ do
         make MODE=release CONFIGNAME=gcc-release all
         echo "./hpcsimulator -r 0 -u Cmdenv -c FatTree --debug-on-errors=true omnetpp.ini"
         ./hpcsimulator -r 0 -u Cmdenv -c FatTree --debug-on-errors=true omnetpp.ini
-        echo "mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_b${baseline)_i${injection}.sca""
-        mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_b${baseline)_i${injection}.sca"
+        echo "mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_b${baseline}_i${injection}.sca""
+        mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_b${baseline}_i${injection}.sca"
     done
 done
