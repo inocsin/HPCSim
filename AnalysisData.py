@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-def preprocessData(nparray, axis):
+def preprocessData(nparray, axis, flag=True):
     """
     To make sure that the latency doesn't fall
     Data format: injection rate, throughput, latency
@@ -23,7 +23,7 @@ def preprocessData(nparray, axis):
             index = i
             break
 
-    if index == -1:
+    if index == -1 or flag == False:
         return nparray
     else:
         return nparray[:index, :]
@@ -35,7 +35,8 @@ def plotResult():
     throughput, injection rate, latency
     :return:
     """
-    file_list = ['baseline', 'highradix']  # different folder contains different data set
+    # different folder contains different data set
+    file_list = ['1 packets', '2 packets', '4 packets', '8 packets', '16 packets', '32 packets', '64 packets']
     dataSummary = []  # 3 dimension data, 0 for curve, 1 for different injection rate data set, 2 for injection rate, throughput and latency
 
     # different curve
@@ -131,7 +132,7 @@ def plotResult():
     plt.xlim(0.0, 1.05)
     # plt.ylim()
     for i in range(len(file_list)):
-        plotData = preprocessData(dataSummary[i], 2)
+        plotData = preprocessData(dataSummary[i], 2, True)
         plt.scatter(plotData[:,0], plotData[:,2] * 1.0e9)
         plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, linewidth=2)
     plt.xlabel("Injection Rate")

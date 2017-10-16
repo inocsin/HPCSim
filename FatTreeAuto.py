@@ -14,8 +14,9 @@ class fatTree(object):
 
     def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
-                 bufferDepth, vc, crossPointBufferDepth, routerDelay,
-                 injectionRate, linkLatency=5*10, baseline=False):
+                 bufferDepth, vc, crossPointBufferDepth,
+                 routerDelay, injectionRate,
+                 freq=0, linkLatency=5*10, baseline=False):
         """
         :param port: number of ports
         :param level: the level of fat-tree
@@ -35,7 +36,7 @@ class fatTree(object):
         self.switchLowerEach = self.switchLower / (self.level - 1)  # number of switches in each lower layer
         self.delay = linkLatency  # ns
         self.datarate = datarate * lane  # Gbps
-        self.rawDatarate = datarate  # Gbps
+        # self.rawDatarate = datarate  # Gbps
         self.packetsize = packetsize  # Byte
         self.flitsize = flitsize  # Byte
         self.flitlength = packetsize / flitsize + 1 if packetsize % flitsize > 0 else packetsize / flitsize
@@ -43,7 +44,10 @@ class fatTree(object):
         self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
-        self.freq = self.datarate * 1.0e9 / (self.flitsize * 8) if self.datarate != 0 else 3500000000.0
+        if self.datarate == 0 and freq == 0:
+            print("datarate and frequency cannot both equals 0")
+            assert False
+        self.freq = self.datarate * 1.0e9 / (self.flitsize * 8) if freq == 0 else freq
         self.simStartTime = 1  # start from 1.0s
         self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2 + 0.0000006
         self.simEndTime = self.recordStartTime + 0.00002  # valid simulation time
@@ -311,7 +315,8 @@ parser.add_option("-p", "--pass_through_latency", dest="pass_through_latency", h
 parser.add_option("-l", "--link_latency", dest="link_latency", help="Link Latency in ns")
 parser.add_option("-b", "--baseline", dest="baseline", help="Baseline router")
 parser.add_option("-u", "--buffer", dest="buffer", help="Input buffer depth")
-parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane")
+parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane in Gbps")
+parser.add_option("-f", "--freq", dest="freq", help="Frequency")
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -336,9 +341,10 @@ if __name__ == '__main__':
     #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
 
     fattree = fatTree(port=4, level=3, datarate=float(option.datarate),
-              lane=8, packetsize=16, flitsize=4,
+              lane=1, packetsize=16, flitsize=4,
               bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
+              freq=float(option.freq),
               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency),
               baseline=int(option.baseline))
     # print option.injection_rate
