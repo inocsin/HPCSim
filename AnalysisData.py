@@ -4,6 +4,31 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
+def preprocessData(nparray, axis):
+    """
+    To make sure that the latency doesn't fall
+    Data format: injection rate, throughput, latency
+    :param nparray:
+    :return:
+    """
+    assert isinstance(nparray, np.ndarray)
+    shape = nparray.shape
+    assert len(shape) == 2 and shape[1] == 3
+    assert axis > 1 and axis < shape[1]
+    index = -1
+    for i in range(2, shape[0]):
+        slope2 = (nparray[i,axis] - nparray[i-1,axis]) / (nparray[i,0] - nparray[i-1,0])
+        slope1 = (nparray[i-1,axis] - nparray[i-2,axis]) / (nparray[i-1,0] - nparray[i-2,0])
+        if slope2 < slope1:
+            index = i
+            break
+
+    if index == -1:
+        return nparray
+    else:
+        return nparray[:index, :]
+
+
 def plotResult():
     """
     read file from log and calculate the flitDelayTime, HopCount, flitReceived, flitSent to get
@@ -73,7 +98,7 @@ def plotResult():
 
         for result in results:
             # print result
-            avgFlitDelayTime, flitReceived, flitSent, packetDropped, timeCount, processorNum, flitLength = result
+            avgFlitDelayTime, flitReceived, flitSent, packetDropped, processorNum, flitLength, timeCount = result
             # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
             injectionRate = 1.0 * (flitSent + packetDropped * flitLength) / (timeCount * processorNum)
             throughtput = 1.0 * flitReceived / (timeCount * processorNum)
@@ -87,29 +112,33 @@ def plotResult():
         dataSummary.append(plotData)
 
     # print rawData
-
     figure = plt.figure(1, figsize=(16, 8))
     axe1 = figure.add_subplot(121)
     axe2 = figure.add_subplot(122)
     plt.sca(axe1)
+    plt.xlim(0.0, 1.05)
+    plt.ylim(0.0, 1.05)
     for i in range(len(file_list)):
         plt.scatter(dataSummary[i][:,0], dataSummary[i][:,1])
         plt.plot(dataSummary[i][:,0], dataSummary[i][:,1], linewidth=2)
     plt.xlabel("Injection Rate")
     plt.ylabel("Throughput")
     plt.title("Injection Rate vs Throughput")
-    plt.legend([str(i) for i in file_list], loc='lower right')
+    plt.legend([str(i) for i in file_list], loc='upper left')
 
     plt.sca(axe2)
     # plt.scatter(plotData[:,0], plotData[:,2])
+    plt.xlim(0.0, 1.05)
+    # plt.ylim()
     for i in range(len(file_list)):
-        plt.scatter(dataSummary[i][:,0], dataSummary[i][:,2] * 1.0e9)
-        plt.plot(dataSummary[i][:,0], dataSummary[i][:,2] * 1.0e9, linewidth=2)
+        plotData = preprocessData(dataSummary[i], 2)
+        plt.scatter(plotData[:,0], plotData[:,2] * 1.0e9)
+        plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, linewidth=2)
     plt.xlabel("Injection Rate")
     plt.ylabel("Latency / ns")
     plt.title("Injection Rate vs Latency")
+    plt.legend([str(i) for i in file_list], loc='upper left')
 
-    plt.legend([str(i) for i in file_list])
     plt.show()
 
 plotResult()
