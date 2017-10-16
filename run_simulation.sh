@@ -19,8 +19,8 @@ do
     do
 		echo "cd $SCRIPT_HOME"
 		cd $SCRIPT_HOME
-		echo "python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=0 --buffer=32 --datarate=$datarate"
-        python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=0 --buffer=32 --datarate=$datarate
+		echo "python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=0 --buffer=32 --freq=3500000000 --datarate=$datarate"
+        python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=0 --buffer=32 --freq=3500000000 --datarate=$datarate
         echo "rm $SIMULATION_HOME/fat_tree_topo.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned $SIMULATION_HOME/omnetpp.ini"
         rm $SIMULATION_HOME/fat_tree_topo.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned $SIMULATION_HOME/omnetpp.ini
         echo "mv $SCRIPT_HOME/result/fat_tree.h $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/fat_tree.ned $SIMULATION_HOME"
