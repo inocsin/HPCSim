@@ -61,24 +61,7 @@ def plotResult():
                         mydict[nodetype] += float(value)
                     else:
                         print("Not support nodetype: " + str(nodetype))
-                    # if nodetype == "flitDelayTimeTotal":
-                    #     flitDelayTimeTotal += float(value)
-                    # if nodetype == "flitDelayTimeCount":
-                    #     flitDelayTimeCount += float(value)
-                    # elif nodetype == "flitReceived":
-                    #     flitReceived += float(value)
-                    # elif nodetype == "flitSent":
-                    #     flitSent += float(value)
-                    # elif nodetype == "packetDelayTimeTotal":
-                    #     packetDelayTimeTotal += float(value)
-                    # elif nodetype == "packetDelayTimeCount":
-                    #     packetDelayTimeCount += float(value)
-                    # elif nodetype == "packetDropped":
-                    #     packetDropped += float(value)
-                    # elif nodetype == "routerPower":
-                    #     routerPower += routerPower
-                    # elif nodetype == "timeCount":
-                    #     timeCount = float(value)
+
 
             txtfile.close()
             assert mydict['flitDelayTimeCount'] != 0 and mydict['timeCount'] != 0
