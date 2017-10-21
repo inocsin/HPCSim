@@ -57,7 +57,6 @@ def plotResult():
             file_list.remove('backup')  # remove backup file
         break
 
-    file_list.remove('infinite')
 
     # different curve
     for i in range(len(file_list)):
@@ -155,7 +154,7 @@ def plotResult():
     plt.xlim(0.0, 1.05)
     # plt.ylim(0.0, 200)
     for i in range(len(file_list)):
-        plotData = preprocessData(dataSummary[i], 2, False, 'slope')
+        plotData = preprocessData(dataSummary[i], 2, True, 'increase')
         plt.scatter(plotData[:,0], plotData[:,2] * 1.0e9)
         plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, marker[i]+'-', linewidth=1)
     plt.xlabel("Injection Rate")
