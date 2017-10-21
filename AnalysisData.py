@@ -2,26 +2,37 @@ import re
 import glob
 import numpy as np
 import sys
+import os
 import matplotlib.pyplot as plt
 
-def preprocessData(nparray, axis, flag=True):
+marker = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', 'd', '|', '_']
+
+def preprocessData(nparray, axis, flag=True, method='slope'):
     """
     To make sure that the latency doesn't fall
     Data format: injection rate, throughput, latency
     :param nparray:
+    :param axis:
+    :param flag: True means use the method
+    :param method: 'slope' or 'increase'
     :return:
     """
     assert isinstance(nparray, np.ndarray)
     shape = nparray.shape
     assert len(shape) == 2 and shape[1] == 3
-    assert axis > 1 and axis < shape[1]
+    assert axis > 0 and axis < shape[1]
     index = -1
     for i in range(2, shape[0]):
-        slope2 = (nparray[i,axis] - nparray[i-1,axis]) / (nparray[i,0] - nparray[i-1,0])
-        slope1 = (nparray[i-1,axis] - nparray[i-2,axis]) / (nparray[i-1,0] - nparray[i-2,0])
-        if slope2 < slope1:
-            index = i
-            break
+        if method == 'slope':
+            slope2 = (nparray[i,axis] - nparray[i-1,axis]) / (nparray[i,0] - nparray[i-1,0])
+            slope1 = (nparray[i-1,axis] - nparray[i-2,axis]) / (nparray[i-1,0] - nparray[i-2,0])
+            if slope2 < slope1:
+                index = i
+                break
+        else:
+            if nparray[i,axis] < nparray[i-1,axis]:
+                index = i
+                break
 
     if index == -1 or flag == False:
         return nparray
@@ -35,12 +46,22 @@ def plotResult():
     throughput, injection rate, latency
     :return:
     """
+
     # different folder contains different data set
-    file_list = ['1 packets', '2 packets', '4 packets', '8 packets', '16 packets', '32 packets', '64 packets']
+    file_list = []
     dataSummary = []  # 3 dimension data, 0 for curve, 1 for different injection rate data set, 2 for injection rate, throughput and latency
+    for fpath, dirs, fs in os.walk('./data'):
+        print fpath, dirs, fs
+        file_list.extend(dirs)
+        if 'backup' in file_list:
+            file_list.remove('backup')  # remove backup file
+        break
+
+    file_list.remove('infinite')
 
     # different curve
     for i in range(len(file_list)):
+        print("In file: " + file_list[i])
         file_path = './data/' + str(file_list[i]) + '/*.sca'
         filenames = glob.glob(file_path)
         # each row is a different simulation result
@@ -86,7 +107,8 @@ def plotResult():
                     if nodetype in mydict:
                         mydict[nodetype] += float(value)
                     else:
-                        print("Not support nodetype: " + str(nodetype))
+                        # print("Not support nodetype: " + str(nodetype))
+                        pass
 
 
             txtfile.close()
@@ -120,8 +142,9 @@ def plotResult():
     plt.xlim(0.0, 1.05)
     plt.ylim(0.0, 1.05)
     for i in range(len(file_list)):
-        plt.scatter(dataSummary[i][:,0], dataSummary[i][:,1])
-        plt.plot(dataSummary[i][:,0], dataSummary[i][:,1], linewidth=2)
+        plotData = preprocessData(dataSummary[i], 1, False, 'increase')
+        plt.scatter(plotData[:,0], plotData[:,1])
+        plt.plot(plotData[:,0], plotData[:,1], marker[i]+'-', linewidth=1)
     plt.xlabel("Injection Rate")
     plt.ylabel("Throughput")
     plt.title("Injection Rate vs Throughput")
@@ -130,11 +153,11 @@ def plotResult():
     plt.sca(axe2)
     # plt.scatter(plotData[:,0], plotData[:,2])
     plt.xlim(0.0, 1.05)
-    # plt.ylim()
+    # plt.ylim(0.0, 200)
     for i in range(len(file_list)):
-        plotData = preprocessData(dataSummary[i], 2, True)
+        plotData = preprocessData(dataSummary[i], 2, False, 'slope')
         plt.scatter(plotData[:,0], plotData[:,2] * 1.0e9)
-        plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, linewidth=2)
+        plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, marker[i]+'-', linewidth=1)
     plt.xlabel("Injection Rate")
     plt.ylabel("Latency / ns")
     plt.title("Injection Rate vs Latency")

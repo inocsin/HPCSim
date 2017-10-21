@@ -11,7 +11,7 @@ LinkLatency=(5)
 Baseline=(0 1)
 Buffer=(32)
 Datarate=(0 16 32 64 128 256 512 1024)
-
+16~
 
 for datarate in ${Datarate[@]}
 do
