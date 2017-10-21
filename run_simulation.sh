@@ -1,5 +1,5 @@
 #!/bin/bash
-SIMULATION_HOME=/home/zhangyi/omnetpp-5.1.1/samples/hpcsimulator 
+SIMULATION_HOME=/home/zhangyi/omnetpp-5.1.1/samples/hpcsimulator
 SCRIPT_HOME=/home/zhangyi/HPCSim 
 echo "SIMUALTION_HOME is ${SIMULATION_HOME}"
 echo "SCRIPT_HOME is ${SCRIPT_HOME}"
@@ -11,7 +11,6 @@ LinkLatency=(5)
 Baseline=(0 1)
 Buffer=(32)
 Datarate=(0 16 32 64 128 256 512 1024)
-16~
 
 for datarate in ${Datarate[@]}
 do
