@@ -15,7 +15,7 @@ class fatTree(object):
     def __init__(self, port, level, datarate,
                  lane, packetsize, flitsize,
                  bufferDepth, vc, crossPointBufferDepth,
-                 routerDelay, injectionRate,
+                 routerDelay, injectionRate, traffic=0, hotspot=1,
                  freq=0, linkLatency=5*10, baseline=False):
         """
         :param port: number of ports
@@ -25,6 +25,7 @@ class fatTree(object):
         :param packetsize: the packet size in Byte
         :param flitsize: the flit size in Byte
         :param routerDelay: router path-through latency in ns
+        :param traffic: 0 for uniform, 1 for hotspot, 2 for transpose, 3 for complement, 4 for bitreversal
         :return:
         """
         self.port = port  # port number
@@ -44,6 +45,7 @@ class fatTree(object):
         self.crossPointBufferDepth = crossPointBufferDepth  # in flits
         self.vc = vc
         self.routerDelay = routerDelay  # in ns
+        self.traffic = traffic
         if self.datarate == 0 and freq == 0:
             print("datarate and frequency cannot both equals 0")
             assert False
@@ -55,6 +57,7 @@ class fatTree(object):
         self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 3
         self.injectionRate = injectionRate
         self.baseline = False if baseline == 0 else True
+        self.hotspot = hotspot
 
     def debugPrint(self):
         print "********************** this is debug message ******************************"
@@ -262,7 +265,8 @@ class fatTree(object):
         headfile.write("#define Sim_Start_Time 1\n")
         headfile.write("#define TimeScale 0.1\n")
         headfile.write("//*************injection mode***************\n")
-        headfile.write("#define UNIFORM\n")
+        headfile.write("#define Traffic " + str(self.traffic) + "\n")
+        headfile.write("#define Hotspot " + str(self.hotspot) + "\n")
         headfile.write("#define LAMBDA 7\n")
         headfile.write("#define INJECTION_RATE " + str(self.injectionRate) + "\n")
         headfile.write("//*************debug infomation***************\n")
@@ -317,6 +321,9 @@ parser.add_option("-b", "--baseline", dest="baseline", help="Baseline router")
 parser.add_option("-u", "--buffer", dest="buffer", help="Input buffer depth")
 parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane in Gbps")
 parser.add_option("-f", "--freq", dest="freq", help="Frequency")
+parser.add_option("-t", "--traffic", dest="traffic", help="Traffic Pattern")
+parser.add_option("-s", "--hotspot", dest="hotspot", help="Hotspot percentage")
+
 option, args = parser.parse_args()
 
 # print fattree.swpid2swlid(319)
@@ -344,7 +351,7 @@ if __name__ == '__main__':
               lane=1, packetsize=16, flitsize=4,
               bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
-              freq=float(option.freq),
+              freq=float(option.freq), traffic=int(option.traffic), hotspot=float(option.hotspot),
               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency),
               baseline=int(option.baseline))
     # print option.injection_rate
