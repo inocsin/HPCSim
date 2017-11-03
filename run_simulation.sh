@@ -19,7 +19,7 @@ do
         for injection in ${InjectionRate[@]}
         do
             cd $SCRIPT_HOME
-            python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=$ba --buffer=32 --freq=3500000000 --datarate=0 --traffic=$t --hotspot=2.0
+            python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=$ba --buffer=32 --freq=3500000000 --datarate=128 --traffic=$t --hotspot=2.0
             rm $SIMULATION_HOME/fat_tree_topo.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned $SIMULATION_HOME/omnetpp.ini
             mv $SCRIPT_HOME/result/fat_tree_topo.h $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/fat_tree.ned $SCRIPT_HOME/result/omnetpp.ini $SIMULATION_HOME
             cd $SIMULATION_HOME

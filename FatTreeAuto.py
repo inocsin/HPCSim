@@ -52,9 +52,9 @@ class fatTree(object):
         self.freq = self.datarate * 1.0e9 / (self.flitsize * 8) if freq == 0 else freq
         self.simStartTime = 1  # start from 1.0s
         self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * (2 * self.level - 1) * 1.2 + 0.0000006
-        self.simEndTime = self.recordStartTime + 0.00002  # valid simulation time
+        self.simEndTime = self.recordStartTime + 0.000002  # valid simulation time
         # denote the router path-trough latency
-        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 3
+        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 5
         self.injectionRate = injectionRate
         self.baseline = False if baseline == 0 else True
         self.hotspot = hotspot
@@ -347,7 +347,7 @@ if __name__ == '__main__':
     #               routerDelay=float(option.pass_through_latency),
     #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
 
-    fattree = fatTree(port=4, level=3, datarate=float(option.datarate),
+    fattree = fatTree(port=16, level=3, datarate=float(option.datarate),
               lane=1, packetsize=16, flitsize=4,
               bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
