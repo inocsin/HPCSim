@@ -326,18 +326,6 @@ parser.add_option("-s", "--hotspot", dest="hotspot", help="Hotspot percentage")
 
 option, args = parser.parse_args()
 
-# print fattree.swpid2swlid(319)
-# print fattree.swlid2swpid(20707)
-# print fattree.swpid2swlid(255)
-# print fattree.swlid2swpid(11507)
-# print fattree.swpid2swlid(127)
-# print fattree.swlid2swpid(1507)
-# print fattree.swpid2swlid(128)
-# print fattree.swlid2swpid(10000)
-# print "processor"
-# print fattree.ppid2plid(1023)
-# print fattree.plid2ppid(150707)
-
 
 # main function
 if __name__ == '__main__':

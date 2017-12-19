@@ -30,7 +30,7 @@ def preprocessData(nparray, axis, flag=True, method='slope'):
                 index = i
                 break
         else:
-            if nparray[i,axis] < nparray[i-1,axis]:
+            if nparray[i,axis] * 1.005 < nparray[i-1,axis] :
                 index = i
                 break
 
@@ -122,8 +122,10 @@ def plotResult():
             # print result
             avgFlitDelayTime, flitReceived, flitSent, packetDropped, processorNum, flitLength, timeCount = result
             # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
-            injectionRate = 1.0 * (flitSent + packetDropped * flitLength) / (timeCount * processorNum)
-            throughtput = 1.0 * flitReceived / (timeCount * processorNum)
+            # injectionRate = 1.0 * (flitSent + packetDropped * flitLength) / (timeCount * processorNum)
+            injectionRate = 1.0 * (flitSent + packetDropped * 4.0) / (timeCount * 18432.0)
+            # throughtput = 1.0 * flitReceived / (timeCount * processorNum)
+            throughtput = 1.0 * flitReceived / (timeCount * 18432.0)
             answers.append([injectionRate, throughtput, avgFlitDelayTime])
 
         rawData = np.array(answers)
@@ -147,7 +149,7 @@ def plotResult():
     plt.xlabel("Injection Rate", fontsize=24)
     plt.ylabel("Throughput", fontsize=24)
     # plt.title("Injection Rate vs Throughput")
-    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=24)
+    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=18)
 
     plt.sca(axe2)
     # plt.scatter(plotData[:,0], plotData[:,2])
@@ -160,7 +162,7 @@ def plotResult():
     plt.xlabel("Injection Rate", fontsize=24)
     plt.ylabel("Latency / ns", fontsize=24)
     # plt.title("Injection Rate vs Latency")
-    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=24)
+    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=18)
 
     plt.show()
 
