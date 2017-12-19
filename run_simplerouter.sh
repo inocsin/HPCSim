@@ -11,7 +11,7 @@ do
     for injection in ${InjectionRate[@]}
     do
         cd $SCRIPT_HOME
-        python $SCRIPT_HOME/SimpleRouterAuto.py --injection_rate=$injection --freq=3500000000--traffic=$t --hotspot=5.0
+        python $SCRIPT_HOME/SimpleRouterAuto.py --injection_rate=$injection --freq=3500000000 --traffic=$t --hotspot=5.0
         rm $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/tianhe_router.ned $SIMULATION_HOME/omnetpp.ini
         mv $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/tianhe_router.ned $SCRIPT_HOME/result/omnetpp.ini $SIMULATION_HOME
         cd $SIMULATION_HOME
