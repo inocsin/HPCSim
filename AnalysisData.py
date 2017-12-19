@@ -119,13 +119,13 @@ def plotResult():
         # each column represent injectionRate, throughput, averageLatency
 
         for result in results:
-            # print result
+            print result
             avgFlitDelayTime, flitReceived, flitSent, packetDropped, processorNum, flitLength, timeCount = result
             # injectionRate = 1.0 * flitSent / (timeCount * self.processor)
             # injectionRate = 1.0 * (flitSent + packetDropped * flitLength) / (timeCount * processorNum)
-            injectionRate = 1.0 * (flitSent + packetDropped * 4.0) / (timeCount * 18432.0)
+            injectionRate = 1.0 * (flitSent + packetDropped * 4.0) / (timeCount * processorNum)
             # throughtput = 1.0 * flitReceived / (timeCount * processorNum)
-            throughtput = 1.0 * flitReceived / (timeCount * 18432.0)
+            throughtput = 1.0 * flitReceived / (timeCount * processorNum)
             answers.append([injectionRate, throughtput, avgFlitDelayTime])
 
         rawData = np.array(answers)

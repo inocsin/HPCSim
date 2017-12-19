@@ -38,7 +38,7 @@ class SimpleRouter(object):
         self.vc = vc
         self.injectionRate = injectionRate
         self.freq = self.datarate * 1.0e9 / (self.flitsize * 8) if freq == 0 else freq
-        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 5
+        self.outBufferDepth = int(self.routerDelay * 1.0e-9 * self.freq) + 1 if self.routerDelay != 0 else 3
         self.simStartTime = 1  # start from 1.0s
         self.recordStartTime = self.simStartTime + self.routerDelay * 1.0e-9 * 1.2 + 0.0000006
         self.simEndTime = self.recordStartTime + 0.000002
@@ -150,101 +150,6 @@ class SimpleRouter(object):
         headfile.write("//***********end of parameter definition*****\n")
         headfile.write("#endif /* TOPOCONFIG_H_TEMPLATE_ */")
 
-    def plotResult(self):
-        filenames = glob.glob('./log/*.txt')
-        # each row is a different simulation result
-        # each column represent avgFlitDelayTime, avgHopCount, flitReceived, flitSent, timeCount
-        results = []
-
-        for filename in filenames:
-            txtfile = open(filename, 'r')
-            lines = txtfile.readlines()
-            # tmp variable for each file
-            flitDelayTimeTotal = 0
-            flitDelayTimeCount = 0
-            hopCountTotal = 0
-            hopCountCount = 0
-            flitReceived = 0
-            flitSent = 0
-            timeCount = 0
-            packetDelayTimeTotal = 0
-            packetDelayTimeCount = 0
-            flitDropped = 0
-
-            for line in lines:
-                line = line.strip()
-                list = re.split("  | |\t", line)
-                # print list
-                if len(list) == 11: # vector
-                    nodetype, count, mean = list[6:9]
-                    if nodetype == "flitDelayTime":
-                        flitDelayTimeTotal += float(count) * float(mean)
-                        flitDelayTimeCount += float(count)
-                    elif nodetype == "hopCount":
-                        hopCountTotal += float(count) * float(mean)
-                        hopCountCount += float(count)
-                    elif nodetype == "packageDelayTime":
-                        packetDelayTimeTotal += float(count) * float(mean)
-                        packetDelayTimeCount += float(count)
-                elif len(list) == 8: # scalar
-                    nodetype, value = list[6:8]
-                    if nodetype == "timeCount":
-                        timeCount = float(value)
-                    elif nodetype == "flitReceived":
-                        flitReceived += float(value)
-                    elif nodetype == "flitSent":
-                        flitSent += float(value)
-                    elif nodetype == "packetDropped":
-                        flitDropped += float(value) * self.flitlength
-
-
-            txtfile.close()
-            if flitDelayTimeCount != 0 and hopCountCount != 0:
-                results.append([flitDelayTimeTotal / flitDelayTimeCount, hopCountTotal / hopCountCount, flitReceived, flitSent, flitDropped, timeCount])
-        # each row in answers is a different simulation result
-        # each column represent injectionRate, throughput, averageLatency
-        # print "avg flit delay time\tavg hop count\tflit received\tflit sent\ttime count"
-        # for result in results:
-        #     print str(result[0]) + "\t" + str(result[1]) + "\t" + str(result[2]) + "\t" + str(result[3]) + "\t" + str(result[4])
-
-        print "injectionRate\tthroughput\tavgFlitDelayTime\tBandwidth\tlane\tpacketSize\tflitSize\tbufferDepth\tvc"
-        answers = []
-        for result in results:
-            # print result
-            avgFlitDelayTime, avgHopCount, flitReceived, flitSent, flitDropped, timeCount = result
-            injectionRate = 1.0 * (flitSent + flitDropped) / (timeCount * self.processor)
-            # print str(flitSent) + " " + str(timeCount) + " " + str(self.processor)
-            throughtput = 1.0 * flitReceived / (timeCount * self.processor)
-            if injectionRate <= 1.0:
-                answers.append([injectionRate, throughtput, avgFlitDelayTime + self.routerDelay])
-            #加入routerDelay
-            print str(injectionRate) + "\t" + str(throughtput) + "\t" + str(avgFlitDelayTime + self.routerDelay) \
-            + "\t" + str(self.rawdatarate) + "\t" + str(self.lane) + "\t" + str(self.packetsize) \
-            + "\t" + str(self.flitsize) + "\t" + str(self.bufferDepth) + "\t" + str(self.vc)
-
-
-        rawData = np.array(answers)
-        index = np.argsort(rawData, axis=0) # axis=0 means sorting the 0th dimension, and other dimension remain constant, that is sorting by column
-        plotData = rawData[index[:,0],:] # sort according to first column
-        # print plotData
-        # print rawData
-
-        figure = plt.figure(1, figsize=(16, 8))
-        axe1 = figure.add_subplot(121)
-        axe2 = figure.add_subplot(122)
-        plt.sca(axe1)
-        plt.plot(plotData[:,0], plotData[:,1], linewidth=2)
-        plt.xlabel("Injection Rate")
-        plt.ylabel("Throughput")
-        plt.title("Router Bandwidth: " + str(self.datarate) + "Gbps * " + str(self.lane) + "lane")
-
-        plt.sca(axe2)
-        plt.plot(plotData[:,0], plotData[:,2], linewidth=2)
-        plt.xlabel("Injection Rate")
-        plt.ylabel("Average Flit Latency")
-        plt.title("Injection Rate vs AverageLatency")
-        # plt.legend()
-        plt.show()
 
     def createINI(self):
         # create omnetpp.ini
@@ -278,7 +183,7 @@ option, args = parser.parse_args()
 
 if __name__ == '__main__':
 
-    tianhe_router = SimpleRouter(port=16, delay=5, datarate=14, lane=8, packetsize=16,
+    tianhe_router = SimpleRouter(port=64, delay=4, datarate=14, lane=8, packetsize=16,
                                 flitsize=4, bufferDepth=32, vc=3, routerDelay=1,injectionRate=float(option.injection_rate),
                                 freq=float(option.freq), traffic=int(option.traffic), hotspot=float(option.hotspot))
     tianhe_router.createNed()
