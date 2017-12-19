@@ -16,21 +16,19 @@ Datarate=(0 16 32 64 128 256 512 1024)
 Traffic=(0)
 VC=(1 2 4 8)
 
-for ba in ${Baseline[@]}
+
+for vc in ${VC[@]}
 do
-    for t in ${Traffic[@]}
+    for injection in ${InjectionRate[@]}
     do
-        for injection in ${InjectionRate[@]}
-        do
-            cd $SCRIPT_HOME
-            python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=$ba --buffer=32 --freq=3500000000 --datarate=128 --traffic=$t --hotspot=2.0
-            rm $SIMULATION_HOME/fat_tree_topo.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned $SIMULATION_HOME/omnetpp.ini
-            mv $SCRIPT_HOME/result/fat_tree_topo.h $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/fat_tree.ned $SCRIPT_HOME/result/omnetpp.ini $SIMULATION_HOME
-            cd $SIMULATION_HOME
-            make clean
-            make MODE=release CONFIGNAME=gcc-release all
-            ./hpcsimulator -r 0 -u Cmdenv -c FatTree --debug-on-errors=true omnetpp.ini
-            mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_ba${ba}_t${t}_i${injection}.sca"
-        done
+        cd $SCRIPT_HOME
+        python $SCRIPT_HOME/FatTreeAuto.py  --injection_rate=$injection --pass_through_latency=0 --link_latency=5 --baseline=0 --buffer=32 --freq=3500000000 --datarate=128 --traffic=0 --hotspot=2.0 --vc=$vc
+        rm $SIMULATION_HOME/fat_tree_topo.h $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/fat_tree.ned $SIMULATION_HOME/omnetpp.ini
+        mv $SCRIPT_HOME/result/fat_tree_topo.h $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/fat_tree.ned $SCRIPT_HOME/result/omnetpp.ini $SIMULATION_HOME
+        cd $SIMULATION_HOME
+        make clean
+        make MODE=release CONFIGNAME=gcc-release all
+        ./hpcsimulator -r 0 -u Cmdenv -c FatTree --debug-on-errors=true omnetpp.ini
+        mv results/FatTree-#0.sca $SCRIPT_HOME/data/"FatTree_vc${vc}_i${injection}.sca"
     done
 done
