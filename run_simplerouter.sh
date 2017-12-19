@@ -15,6 +15,7 @@ do
         rm $SIMULATION_HOME/topoconfig.h $SIMULATION_HOME/tianhe_router.ned $SIMULATION_HOME/omnetpp.ini
         mv $SCRIPT_HOME/result/topoconfig.h $SCRIPT_HOME/result/tianhe_router.ned $SCRIPT_HOME/result/omnetpp.ini $SIMULATION_HOME
         cd $SIMULATION_HOME
+        make clean
         make MODE=release CONFIGNAME=gcc-release all
         ./hpcsimulator -r 0 -u Cmdenv -c TianheRouter --debug-on-errors=true omnetpp.ini
         mv results/TianheRouter-#0.sca $SCRIPT_HOME/data/"SimpleRouter_t${t}_i${injection}.sca"
