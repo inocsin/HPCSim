@@ -1,4 +1,5 @@
 #!/bin/bash
+export LD_LIBRARY_PATH=
 SIMULATION_HOME=/home/zhangyi/omnetpp-5.1.1/samples/hpcsimulator
 SCRIPT_HOME=/home/zhangyi/HPCSim
 echo "SIMUALTION_HOME is ${SIMULATION_HOME}"

@@ -1,4 +1,5 @@
 #!/bin/bash
+export LD_LIBRARY_PATH=
 SIMULATION_HOME=/home/zhangyi/omnetpp-5.1.1/samples/hpcsimulator
 SCRIPT_HOME=/home/zhangyi/HPCSim 
 echo "SIMUALTION_HOME is ${SIMULATION_HOME}"
@@ -12,6 +13,7 @@ Baseline=(0 1)
 Buffer=(32)
 Datarate=(0 16 32 64 128 256 512 1024)
 Traffic=(0 1 2 3 4)
+
 for ba in ${Baseline[@]}
 do
     for t in ${Traffic[@]}
