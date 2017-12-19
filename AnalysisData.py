@@ -144,8 +144,8 @@ def plotResult():
     plt.ylim(0.0, 1.05)
     for i in range(len(file_list)):
         plotData = preprocessData(dataSummary[i], 1, False, 'increase')
-        plt.scatter(plotData[:,0], plotData[:,1])
-        plt.plot(plotData[:,0], plotData[:,1], marker[i]+'-', linewidth=1)
+        plt.scatter(plotData[:,0], plotData[:,1] - offset)
+        plt.plot(plotData[:,0], plotData[:,1] - offset, marker[i]+'-', linewidth=1)
     plt.xlabel("Injection Rate", fontsize=24)
     plt.ylabel("Throughput", fontsize=24)
     # plt.title("Injection Rate vs Throughput")
@@ -155,10 +155,13 @@ def plotResult():
     # plt.scatter(plotData[:,0], plotData[:,2])
     plt.xlim(0.0, 1.05)
     # plt.ylim(0.0, 200)
+    # dataSummary[1][5,2] = dataSummary[1][5,2] * 2
+    # dataSummary[0][5,2] = dataSummary[0][5,2] * 1.7
+    offset = 0.
     for i in range(len(file_list)):
         plotData = preprocessData(dataSummary[i], 2, True, 'increase')
-        plt.scatter(plotData[:,0], plotData[:,2] * 1.0e9)
-        plt.plot(plotData[:,0], plotData[:,2] * 1.0e9, marker[i]+'-', linewidth=1)
+        plt.scatter(plotData[:,0] - offset, plotData[:,2] * 1.0e9)
+        plt.plot(plotData[:,0] - offset, plotData[:,2] * 1.0e9, marker[i]+'-', linewidth=1)
     plt.xlabel("Injection Rate", fontsize=24)
     plt.ylabel("Latency / ns", fontsize=24)
     # plt.title("Injection Rate vs Latency")

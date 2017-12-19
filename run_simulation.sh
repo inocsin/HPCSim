@@ -9,10 +9,12 @@ PassThroughLatency=(50 100 200 300 500 800)
 InjectionRate=(0.1 0.2 0.3 0.4 0.5 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0)
 #InjectionRate=(0.1)
 LinkLatency=(5)
-Baseline=(0 1)
+Baseline=(0)
 Buffer=(32)
 Datarate=(0 16 32 64 128 256 512 1024)
-Traffic=(0 1 2 3 4)
+#Traffic=(0 1 2 3 4)
+Traffic=(0)
+VC=(1 2 4 8)
 
 for ba in ${Baseline[@]}
 do

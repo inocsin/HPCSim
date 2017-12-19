@@ -323,6 +323,7 @@ parser.add_option("-d", "--datarate", dest="datarate", help="Datarate per lane i
 parser.add_option("-f", "--freq", dest="freq", help="Frequency")
 parser.add_option("-t", "--traffic", dest="traffic", help="Traffic Pattern")
 parser.add_option("-s", "--hotspot", dest="hotspot", help="Hotspot percentage")
+parser.add_option("-v", "--vc", dest="vc", help="virtual channel")
 
 option, args = parser.parse_args()
 
@@ -337,7 +338,7 @@ if __name__ == '__main__':
 
     fattree = fatTree(port=16, level=3, datarate=float(option.datarate),
               lane=1, packetsize=16, flitsize=4,
-              bufferDepth=int(option.buffer), vc=3, crossPointBufferDepth=8,
+              bufferDepth=int(option.buffer), vc=int(option.vc), crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
               freq=float(option.freq), traffic=int(option.traffic), hotspot=float(option.hotspot),
               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency),
