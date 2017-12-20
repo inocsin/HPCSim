@@ -46,7 +46,7 @@ def plotResult():
     throughput, injection rate, latency
     :return:
     """
-
+    offset = 0.
     # different folder contains different data set
     file_list = []
     dataSummary = []  # 3 dimension data, 0 for curve, 1 for different injection rate data set, 2 for injection rate, throughput and latency
@@ -157,7 +157,7 @@ def plotResult():
     # plt.ylim(0.0, 200)
     # dataSummary[1][5,2] = dataSummary[1][5,2] * 2
     # dataSummary[0][5,2] = dataSummary[0][5,2] * 1.7
-    offset = 0.
+
     for i in range(len(file_list)):
         plotData = preprocessData(dataSummary[i], 2, True, 'increase')
         plt.scatter(plotData[:,0] - offset, plotData[:,2] * 1.0e9)

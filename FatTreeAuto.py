@@ -337,7 +337,7 @@ if __name__ == '__main__':
     #               injectionRate=float(option.injection_rate), linkLatency=float(option.link_latency))
 
     fattree = fatTree(port=16, level=3, datarate=float(option.datarate),
-              lane=1, packetsize=16, flitsize=4,
+              lane=1, packetsize=256, flitsize=32,
               bufferDepth=int(option.buffer), vc=int(option.vc), crossPointBufferDepth=8,
               routerDelay=float(option.pass_through_latency),
               freq=float(option.freq), traffic=int(option.traffic), hotspot=float(option.hotspot),
