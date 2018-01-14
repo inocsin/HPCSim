@@ -4,8 +4,11 @@ import numpy as np
 import sys
 import os
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['font.sans-serif'] = 'Times New Roman'
 
-marker = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', 'd', '|', '_']
+marker = ['o', '^',  '+', 'x', '*',  'v', '<', '>', '1', '2', '3', '4', 's', 'p', 'h', 'H', 'D', 'd', '|', '_']
 
 def preprocessData(nparray, axis, flag=True, method='slope'):
     """
@@ -30,7 +33,7 @@ def preprocessData(nparray, axis, flag=True, method='slope'):
                 index = i
                 break
         else:
-            if nparray[i,axis] * 1.005 < nparray[i-1,axis] :
+            if nparray[i,axis] * 1.005 < nparray[i-1,axis]:
                 index = i
                 break
 
@@ -46,7 +49,7 @@ def plotResult():
     throughput, injection rate, latency
     :return:
     """
-    offset = 0.1
+    offset = 0.0
     # different folder contains different data set
     file_list = []
     dataSummary = []  # 3 dimension data, 0 for curve, 1 for different injection rate data set, 2 for injection rate, throughput and latency
@@ -144,12 +147,14 @@ def plotResult():
     plt.ylim(0.0, 1.05)
     for i in range(len(file_list)):
         plotData = preprocessData(dataSummary[i], 1, False, 'increase')
-        plt.scatter(plotData[:,0], plotData[:,1] - offset)
-        plt.plot(plotData[:,0], plotData[:,1] - offset, marker[i]+'-', linewidth=1)
+        # plt.scatter(plotData[:,0], plotData[:,1] - offset, marker=marker[i])
+        plt.plot(plotData[:,0], plotData[:,1] - offset, marker=marker[i], linestyle='-', linewidth=3, ms=10.0)
     plt.xlabel("Injection Rate", fontsize=24)
     plt.ylabel("Throughput", fontsize=24)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     # plt.title("Injection Rate vs Throughput")
-    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=18)
+    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=20)
 
     plt.sca(axe2)
     # plt.scatter(plotData[:,0], plotData[:,2])
@@ -159,13 +164,15 @@ def plotResult():
     # dataSummary[0][5,2] = dataSummary[0][5,2] * 1.7
 
     for i in range(len(file_list)):
-        plotData = preprocessData(dataSummary[i], 2, True, 'slope')
-        plt.scatter(plotData[:,0] - offset, plotData[:,2] * 1.0e9)
-        plt.plot(plotData[:,0] - offset, plotData[:,2] * 1.0e9, marker[i]+'-', linewidth=1)
-    plt.xlabel("Injection Rate", fontsize=24)
-    plt.ylabel("Latency / cycles", fontsize=24)
+        plotData = preprocessData(dataSummary[i], 2, True, 'incsrease')
+        # plt.scatter(plotData[:,0] - offset, plotData[:,2] * 1.0e9, marker=marker[i])
+        plt.plot(plotData[:,0] - offset, plotData[:,2] * 1.0e9, marker=marker[i], linestyle='-', linewidth=3, ms=10.0)
+    plt.xlabel("Injection Rate", fontsize=24, fontname="Times New Roman")
+    plt.ylabel("Latency / cycles", fontsize=24, fontname="Times New Roman")
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     # plt.title("Injection Rate vs Latency")
-    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=18)
+    plt.legend([str(i) for i in file_list], loc='upper left', fontsize=20)
 
     plt.show()
 
